@@ -19,3 +19,18 @@ export function useManagerOptions() {
     staleTime: 60_000,
   });
 }
+
+export function useEmployeeOptions() {
+  return useQuery({
+    queryKey: employeeKeys.options(),
+    queryFn: () =>
+      listEmployees({
+        page: 0,
+        limit: 100,
+        employmentStatus: "ACTIVE",
+        sortBy: "firstName",
+        sortDirection: "asc",
+      }),
+    staleTime: 60_000,
+  });
+}

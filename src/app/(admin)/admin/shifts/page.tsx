@@ -1,3 +1,18 @@
-import PagePlaceholder from "@/components/shared/PagePlaceholder";
+import { Suspense } from "react";
 
-export default function Page() { return <PagePlaceholder title="Shifts" />; }
+import { Skeleton } from "@/components/ui/skeleton";
+import { ShiftDirectory } from "@/features/shifts/components/shift-directory";
+
+export default function ShiftsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8">
+          <Skeleton className="h-96 rounded-xl" />
+        </div>
+      }
+    >
+      <ShiftDirectory />
+    </Suspense>
+  );
+}

@@ -9,4 +9,5 @@ export const employeeKeys = {
   self: () => [...employeeKeys.all, "self"] as const,
   references: () => [...employeeKeys.all, "references"] as const,
   managers: () => [...employeeKeys.references(), "managers"] as const,
+  options: () => [...employeeKeys.references(), "options"] as const,
 };
