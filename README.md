@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PeopleFlow HRMS Frontend
+
+The frontend includes the responsive dashboard foundation, passwordless email OTP authentication, employee management, and department management. It integrates with the separate Java 21 Spring Boot API; business authorization and all HRMS data rules remain authoritative on the backend.
 
 ## Getting Started
 
-First, run the development server:
+Copy the environment template, install dependencies, and start the development server:
 
-```bash
+```powershell
+Copy-Item .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000/login](http://localhost:3000/login). A successful OTP verification redirects `ADMIN` users to `/admin/dashboard` and `EMPLOYEE` users to `/employee/dashboard`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`NEXT_PUBLIC_API_URL` must point at the backend API root. The default template uses `http://localhost:8080/api/v1`. `NEXT_PUBLIC_OTP_RESEND_COOLDOWN_SECONDS` mirrors the backend resend cooldown until that duration is exposed by the API response.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project structure
 
-## Learn More
+- `src/app/(admin)` and `src/app/(employee)` contain role-specific route groups and layouts.
+- `src/app/(auth)` contains the login and OTP verification routes.
+- `src/components/layouts` contains the reusable dashboard shell, headers, navigation, breadcrumbs, and page structure.
+- `src/components/ui` contains shadcn-style primitives built on Tailwind and Radix UI.
+- `src/components/charts`, `src/components/tables`, and `src/components/shared` contain reusable presentation components.
+- `src/constants/navigation.ts` keeps admin and employee navigation definitions separate.
+- `src/features/auth` owns authentication components, schemas, DTOs, routing decisions, API calls, and session utilities.
+- `src/features/employees` owns the employee DTOs, schemas, API service, query hooks, form mapping, directory, detail views, lifecycle UI, and self-profile UI.
+- `src/features/departments` owns department DTOs, schemas, API communication, query hooks, directory state, forms, detail views, and lifecycle UI. Employee department selectors reuse this centralized service and query cache.
+- `src/providers/auth-provider.tsx` restores the cookie-backed session and exposes lightweight authenticated-user state; `query-provider.tsx` configures TanStack Query.
+- `src/services/api-client.ts` centralizes Axios configuration; modular interceptors attach access tokens, coordinate refreshes, and normalize the Spring error envelope.
+- `src/types` contains shared presentation contracts.
 
-To learn more about Next.js, take a look at the following resources:
+The dashboards still use explicitly labeled static demonstration data. Employee screens use the real employee API and do not persist employee records in browser storage. Attendance, leave, payroll, and other business modules remain out of scope.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Design system
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Global light-theme tokens live in `src/app/globals.css`. They cover surfaces, typography, borders, inputs, semantic state colors, radii, and shadows, and are exposed through Tailwind CSS 4 theme variables. There is no dark theme in this phase.
 
-## Deploy on Vercel
+Interactive controls target at least 44px, navigation uses active-page semantics, and the mobile navigation uses an accessible dialog-based sheet.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Authentication and API behavior
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The backend response envelope is `{ success, message, data, timestamp }`. Authentication endpoints are rooted at `/auth`: `request-otp`, `verify-otp`, `refresh`, `logout`, and `me`.
+
+The access token is held only in an in-memory session store and attached as a Bearer token by Axios. The refresh token is never exposed to JavaScript: it stays in the backend-managed HTTP-only `hrms_refresh_token` cookie. On application startup, the auth provider calls `/auth/refresh` with credentials to rotate the cookie and restore the user. A single-flight coordinator prevents concurrent refresh requests. Only 401 responses from requests that carried an access token trigger refresh; 403 responses and public OTP endpoints do not.
+
+Route guards provide role-aware user experience for `/admin/*` and `/employee/*`. They are not a security boundary: every protected API operation must continue to be enforced by Spring Security.
+
+## Employee management
+
+Administrators can browse `/admin/employees` with backend-supported search, status and department filters, zero-based pagination, and page sizes up to 100. Create, detail, edit, deactivate, and reactivate screens call only the documented Spring endpoints. Employee codes and linked login accounts are generated by the backend.
+
+Employee form validation mirrors the backend DTO limits and conditional address/emergency-contact requirements. Updates are mapped as partial requests so unchanged values are omitted. Text-based optional fields can be cleared; the current backend contract cannot clear an existing date, gender, address, or emergency-contact object through `PATCH` because null values are ignored.
+
+`/employee/profile` integrates with `/employees/me` and is read-only. Department and reporting-manager names are resolved only on admin screens because their lookup endpoints are admin-protected. Reference selectors currently request at most 100 active records because the backend pagination limit is 100 and no unpaginated lookup endpoint exists.
+
+## Department management
+
+Administrators can browse `/admin/departments` using backend search, status filtering, supported sorting, zero-based pagination, and page sizes up to 100. Create and edit forms match the backend code, name, description, and manager contracts. Detail screens expose lifecycle controls but never bypass the backend safeguard that prevents deactivating departments with active employees.
+
+The department API does not return employee counts, so none are inferred or calculated in the browser. Manager names use the active employee reference list; records beyond the backend's 100-item page limit are shown as unavailable rather than fabricated.
+
+## Available scripts
+
+- `npm run dev` starts the development server.
+- `npm run lint` runs ESLint.
+- `npm run build` creates a production build.
+- `npm run typecheck` runs strict TypeScript compilation.
+- `npm run test` runs the Vitest authentication and employee-management suites.
+- `npm run test:coverage` runs the suite with V8 coverage.
+
+## Current integration note
+
+The backend currently returns OTP expiry but not resend-cooldown duration. The frontend default is aligned to the backend configuration at 60 seconds and can be overridden publicly. A future backend response field such as `resendAllowedInSeconds` would remove that duplicated configuration.
+
+## Recommended next phase
+
+The next frontend phase can integrate office locations, while keeping shifts and work assignments as separate bounded modules. A backend typeahead lookup for departments and reporting managers would improve reference selection for organizations with more than 100 records.
