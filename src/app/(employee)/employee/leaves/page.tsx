@@ -1,3 +1,10 @@
-import PagePlaceholder from "@/components/shared/PagePlaceholder";
+import { EmployeeLeaveScreen } from "@/features/leaves/components/employee-leave-screen";
 
-export default function Page() { return <PagePlaceholder title="My leaves" />; }
+export const metadata = {
+  title: "My Leaves | HRMS",
+  description: "View leave balances and manage leave requests.",
+};
+
+export default function Page() {
+  return <EmployeeLeaveScreen />;
+}

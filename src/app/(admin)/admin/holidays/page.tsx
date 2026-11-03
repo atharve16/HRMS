@@ -1,3 +1,10 @@
-import PagePlaceholder from "@/components/shared/PagePlaceholder";
+import { AdminHolidayDirectory } from "@/features/holidays/components/admin-holiday-directory";
 
-export default function Page() { return <PagePlaceholder title="Holidays" />; }
+export const metadata = {
+  title: "Company Holidays | HRMS Admin",
+  description: "Manage official company-wide paid holidays.",
+};
+
+export default function Page() {
+  return <AdminHolidayDirectory />;
+}

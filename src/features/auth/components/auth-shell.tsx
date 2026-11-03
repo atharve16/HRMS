@@ -1,4 +1,4 @@
-import { CheckCircle2, ShieldCheck } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { DashboardBrand } from "@/components/layouts/dashboard-brand";
@@ -16,9 +16,6 @@ export function AuthShell({ children }: { children: ReactNode }) {
         </div>
 
         <div className="relative max-w-xl py-16">
-          <span className="mb-6 flex size-12 items-center justify-center rounded-xl bg-white/12">
-            <ShieldCheck aria-hidden="true" className="size-6" />
-          </span>
           <h1 className="text-4xl font-bold leading-tight tracking-tight xl:text-5xl">
             Your people workspace, protected by passwordless sign-in.
           </h1>

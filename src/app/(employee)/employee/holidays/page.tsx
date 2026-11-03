@@ -1,3 +1,10 @@
-import PagePlaceholder from "@/components/shared/PagePlaceholder";
+import { EmployeeHolidayScreen } from "@/features/holidays/components/employee-holiday-screen";
 
-export default function Page() { return <PagePlaceholder title="Holidays" />; }
+export const metadata = {
+  title: "Company Holidays | HRMS",
+  description: "View scheduled paid company holidays.",
+};
+
+export default function Page() {
+  return <EmployeeHolidayScreen />;
+}

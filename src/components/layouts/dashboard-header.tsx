@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronDown, CircleHelp, LoaderCircle, LogOut, UserRound } from "lucide-react";
+import { ChevronDown, CircleHelp, LoaderCircle, LogOut, UserRound } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { DashboardIdentity, NavigationSection } from "@/types/navigation";
+import { NotificationHeaderDropdown } from "@/features/notifications/components/notification-header-dropdown";
 import { useAuth } from "@/providers/auth-provider";
 
 import { MobileNavigation } from "./mobile-navigation";
@@ -64,10 +65,7 @@ export function DashboardHeader({ navigation, identity }: DashboardHeaderProps) 
         <Button aria-label="Help and support" className="hidden sm:inline-flex" size="icon" variant="ghost">
           <CircleHelp aria-hidden="true" className="size-5" />
         </Button>
-        <Button aria-label="Notifications" className="relative" size="icon" variant="ghost">
-          <Bell aria-hidden="true" className="size-5" />
-          <span className="absolute right-2.5 top-2.5 size-2 rounded-full border-2 border-card bg-info" />
-        </Button>
+        <NotificationHeaderDropdown />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

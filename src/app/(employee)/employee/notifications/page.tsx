@@ -1,3 +1,10 @@
-import PagePlaceholder from "@/components/shared/PagePlaceholder";
+import { NotificationInboxScreen } from "@/features/notifications/components/notification-inbox-screen";
 
-export default function Page() { return <PagePlaceholder title="Notifications" />; }
+export const metadata = {
+  title: "Notifications | HRMS",
+  description: "View announcements, approvals, and notices.",
+};
+
+export default function Page() {
+  return <NotificationInboxScreen />;
+}

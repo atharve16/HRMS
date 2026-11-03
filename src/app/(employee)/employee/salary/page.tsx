@@ -1,3 +1,10 @@
-import PagePlaceholder from "@/components/shared/PagePlaceholder";
+import { EmployeePayrollScreen } from "@/features/payroll/components/employee-payroll-screen";
 
-export default function Page() { return <PagePlaceholder title="Salary" />; }
+export const metadata = {
+  title: "My Salary & Payslips | HRMS",
+  description: "View monthly payslips, salary structures, and payment history.",
+};
+
+export default function Page() {
+  return <EmployeePayrollScreen />;
+}

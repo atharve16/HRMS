@@ -1,3 +1,10 @@
-import PagePlaceholder from "@/components/shared/PagePlaceholder";
+import { AdminLeaveDirectory } from "@/features/leaves/components/admin-leave-directory";
 
-export default function Page() { return <PagePlaceholder title="Leaves" />; }
+export const metadata = {
+  title: "Leave Requests | HRMS Admin",
+  description: "Review and manage employee leave applications.",
+};
+
+export default function Page() {
+  return <AdminLeaveDirectory />;
+}

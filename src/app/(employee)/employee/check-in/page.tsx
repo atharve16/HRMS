@@ -1,3 +1,10 @@
-import PagePlaceholder from "@/components/shared/PagePlaceholder";
+import { EmployeeAttendanceScreen } from "@/features/attendance/components/employee-attendance-screen";
 
-export default function Page() { return <PagePlaceholder title="Check in" />; }
+export const metadata = {
+  title: "Check In / Out | HRMS",
+  description: "Record attendance check-in and check-out punches.",
+};
+
+export default function Page() {
+  return <EmployeeAttendanceScreen />;
+}
