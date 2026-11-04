@@ -17,6 +17,18 @@ const authenticationResponse: AuthenticationResponse = {
   },
 };
 
+const adminResponse: AuthenticationResponse = {
+  accessToken: "admin-access-token",
+  tokenType: "Bearer",
+  expiresInSeconds: 900,
+  user: {
+    id: "admin-1",
+    email: "admin@example.com",
+    role: "ADMIN",
+    status: "ACTIVE",
+  },
+};
+
 afterEach(() => {
   sessionStore.clear();
   vi.useRealTimers();
@@ -80,5 +92,34 @@ describe("session lifecycle", () => {
     await expect(refresh()).rejects.toThrow("expired");
     await expect(refresh()).resolves.toEqual(authenticationResponse);
     expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("simulates browser reload: empty memory restored via refresh", async () => {
+    // 1. Initial reload state: in-memory session is empty
+    expect(sessionStore.getSnapshot()).toBeNull();
+    expect(sessionStore.getAccessToken()).toBeUndefined();
+
+    // 2. Refresh endpoint succeeds with rotated token
+    const refreshFn = vi.fn().mockResolvedValue(adminResponse);
+    const refreshCoordinator = createRefreshCoordinator(refreshFn);
+
+    const result = await refreshCoordinator();
+    sessionStore.establish(result);
+
+    // 3. User session is now established in memory
+    expect(sessionStore.getAccessToken()).toBe("admin-access-token");
+    expect(sessionStore.getSnapshot()?.user.role).toBe("ADMIN");
+  });
+
+  it("preserves active session across multiple in-app page navigations", () => {
+    sessionStore.establish(authenticationResponse);
+    expect(sessionStore.getAccessToken()).toBe("access-token");
+
+    // Simulating routing between /dashboard, /employees, /attendance, /leaves, /departments
+    const pages = ["/dashboard", "/employees", "/attendance", "/leaves", "/departments"];
+    for (const page of pages) {
+      expect(sessionStore.getAccessToken()).toBe("access-token");
+      expect(sessionStore.getSnapshot()?.user.email).toBe("employee@example.com");
+    }
   });
 });

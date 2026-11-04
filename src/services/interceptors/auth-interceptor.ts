@@ -19,7 +19,9 @@ const publicAuthPaths = [
 ];
 
 function isPublicAuthRequest(url?: string) {
-  return publicAuthPaths.some((path) => url?.endsWith(path));
+  if (!url) return false;
+  const pathWithoutQuery = url.split("?")[0];
+  return publicAuthPaths.some((path) => pathWithoutQuery.endsWith(path));
 }
 
 export function attachAuthInterceptors(client: AxiosInstance) {

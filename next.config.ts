@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
+const backendUrl =
+  process.env.INTERNAL_API_URL ||
+  process.env.BACKEND_URL ||
+  "https://hrms-n1xj.onrender.com";
+
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
@@ -11,6 +15,14 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${backendUrl}/api/v1/:path*`,
+      },
+    ];
   },
 };
 

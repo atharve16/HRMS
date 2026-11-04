@@ -13,10 +13,16 @@ export function GuestGuard({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (status === "authenticated" && session) {
+      if (process.env.NODE_ENV !== "production") {
+        console.log(
+          "[GuestGuard] Authenticated user on guest route. Redirecting to:",
+          dashboardForRole(session.user.role),
+        );
+      }
       router.replace(dashboardForRole(session.user.role));
     }
   }, [router, session, status]);
 
-  if (status !== "unauthenticated") return <AuthLoading />;
+  if (status === "authenticated") return <AuthLoading />;
   return children;
 }

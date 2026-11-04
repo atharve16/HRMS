@@ -26,9 +26,14 @@ export function RoleGuard({
 
   useEffect(() => {
     if (status !== "loading" && !decision.allowed) {
+      if (process.env.NODE_ENV !== "production") {
+        console.log(
+          `[RoleGuard] Access denied for route "${pathname}". Status: ${status}. Redirecting to: ${decision.redirectTo}`,
+        );
+      }
       router.replace(decision.redirectTo);
     }
-  }, [decision, router, status]);
+  }, [decision, pathname, router, status]);
 
   if (status === "loading" || !decision.allowed) return <AuthLoading />;
   return children;
