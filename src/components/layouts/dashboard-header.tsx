@@ -17,6 +17,7 @@ import type { DashboardIdentity, NavigationSection } from "@/types/navigation";
 import { NotificationHeaderDropdown } from "@/features/notifications/components/notification-header-dropdown";
 import { useAuth } from "@/providers/auth-provider";
 
+import { InstallAppButton } from "../pwa/install-app";
 import { MobileNavigation } from "./mobile-navigation";
 
 function getPageTitle(pathname: string, navigation: NavigationSection[]) {
@@ -65,6 +66,7 @@ export function DashboardHeader({ navigation, identity }: DashboardHeaderProps) 
         <Button aria-label="Help and support" className="hidden sm:inline-flex" size="icon" variant="ghost">
           <CircleHelp aria-hidden="true" className="size-5" />
         </Button>
+        <InstallAppButton />
         <NotificationHeaderDropdown />
 
         <DropdownMenu>

@@ -12,16 +12,30 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
+  applicationName: "HRMS",
   title: {
     default: "PeopleFlow HRMS",
     template: "%s | PeopleFlow HRMS",
   },
   description: "A responsive frontend foundation for human resource management.",
+  icons: {
+    icon: "/icons/hrms-192.png",
+    apple: "/icons/hrms-apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "HRMS",
+    statusBarStyle: "default",
+  },
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
   colorScheme: "light",
-  themeColor: "#f7f8fa",
+  themeColor: "#315fc5",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

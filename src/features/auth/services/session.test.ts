@@ -118,6 +118,7 @@ describe("session lifecycle", () => {
     // Simulating routing between /dashboard, /employees, /attendance, /leaves, /departments
     const pages = ["/dashboard", "/employees", "/attendance", "/leaves", "/departments"];
     for (const page of pages) {
+      expect(page).toBeDefined();
       expect(sessionStore.getAccessToken()).toBe("access-token");
       expect(sessionStore.getSnapshot()?.user.email).toBe("employee@example.com");
     }

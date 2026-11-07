@@ -16,17 +16,6 @@ const testSession: AuthenticationResponse = {
   },
 };
 
-const newSession: AuthenticationResponse = {
-  accessToken: "refreshed-access",
-  tokenType: "Bearer",
-  expiresInSeconds: 900,
-  user: {
-    id: "user-1",
-    email: "emp@example.com",
-    role: "EMPLOYEE",
-    status: "ACTIVE",
-  },
-};
 
 describe("refreshSession error and session preservation handling", () => {
   beforeEach(() => {
@@ -54,11 +43,6 @@ describe("refreshSession error and session preservation handling", () => {
         headers: new AxiosHeaders(),
         config: { headers: new AxiosHeaders() },
       },
-    );
-
-    // Mock axios post to return 401
-    const { refreshSession } = await import(
-      "@/features/auth/services/refresh-session"
     );
 
     // When 401 is encountered, session must be cleared

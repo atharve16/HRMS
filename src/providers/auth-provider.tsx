@@ -70,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // If session is already present in memory on first mount, skip restoring
     if (sessionStore.getAccessToken() && restorationAttempt === 0) {
-      setRestoring(false);
       return;
     }
 

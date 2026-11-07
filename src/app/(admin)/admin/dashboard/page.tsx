@@ -1,64 +1,77 @@
-import { CalendarDays, Clock3, UserCheck, Users } from "lucide-react";
+"use client";
 
-import { AttendanceOverview } from "@/components/charts/attendance-overview";
+import { RefreshCw } from "lucide-react";
+
 import { PageContainer } from "@/components/layouts/page-container";
 import { PageHeader } from "@/components/layouts/page-header";
-import { DemoBanner } from "@/components/shared/demo-banner";
-import { StatCard } from "@/components/shared/stat-card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { AdminAttendanceOverview } from "@/features/dashboard/components/admin/admin-attendance-overview";
+import { AdminDepartmentDistribution } from "@/features/dashboard/components/admin/admin-department-distribution";
+import { AdminPayrollOverview } from "@/features/dashboard/components/admin/admin-payroll-overview";
+import { AdminPendingLeaves } from "@/features/dashboard/components/admin/admin-pending-leaves";
+import { AdminRecentAttendance } from "@/features/dashboard/components/admin/admin-recent-attendance";
+import { AdminRecentEmployees } from "@/features/dashboard/components/admin/admin-recent-employees";
+import { AdminStatCards } from "@/features/dashboard/components/admin/admin-stat-cards";
+import { AdminUpcomingHolidays } from "@/features/dashboard/components/admin/admin-upcoming-holidays";
+import { useAdminDashboard } from "@/features/dashboard/hooks/use-admin-dashboard";
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
+  const dashboard = useAdminDashboard();
+
   return (
     <PageContainer>
       <PageHeader
-        actions={<Badge variant="neutral">Static preview</Badge>}
-        description="A clear view of workforce activity, requests, and attendance patterns."
+        actions={
+          <div className="flex items-center gap-2">
+            <Badge variant="info">Admin workspace</Badge>
+            <Button
+              className="h-8 gap-1.5 px-3 text-xs"
+              disabled={dashboard.isRefreshing}
+              onClick={() => dashboard.refreshAll()}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              <RefreshCw
+                aria-hidden="true"
+                className={cn("size-3.5", dashboard.isRefreshing && "animate-spin text-primary")}
+              />
+              <span>{dashboard.isRefreshing ? "Refreshing..." : "Refresh"}</span>
+            </Button>
+          </div>
+        }
+        description="Real-time workforce intelligence, attendance patterns, pending leaves, and payroll records."
         eyebrow="Admin workspace"
         title="Workforce overview"
       />
-      <DemoBanner />
 
-      <section aria-label="Sample workforce statistics" className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard helper="Illustrative organization headcount" icon={Users} label="Total employees" value="248" />
-        <StatCard helper="Sample count for today" icon={UserCheck} label="Present today" tone="success" value="221" />
-        <StatCard helper="Sample requests awaiting review" icon={CalendarDays} label="Pending leave requests" tone="warning" value="12" />
-        <StatCard helper="Illustrative average this week" icon={Clock3} label="Attendance rate" tone="info" value="91.4%" />
-      </section>
+      <div className="mt-6 space-y-6">
+        {/* 1. Summary metric cards */}
+        <AdminStatCards dashboard={dashboard} />
 
-      <section aria-label="Sample attendance insights" className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(18rem,1fr)]">
-        <AttendanceOverview />
-        <Card>
-          <CardHeader>
-            <CardTitle>Today at a glance</CardTitle>
-            <CardDescription>Illustrative workforce distribution for this preview.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            <div>
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium">Present</span><span className="text-muted-foreground">89%</span>
-              </div>
-              <Progress indicatorClassName="bg-success" label="Sample present rate" value={89} />
-            </div>
-            <div>
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium">Remote</span><span className="text-muted-foreground">7%</span>
-              </div>
-              <Progress indicatorClassName="bg-info" label="Sample remote rate" value={7} />
-            </div>
-            <div>
-              <div className="mb-2 flex items-center justify-between text-sm">
-                <span className="font-medium">On leave</span><span className="text-muted-foreground">4%</span>
-              </div>
-              <Progress indicatorClassName="bg-warning" label="Sample leave rate" value={4} />
-            </div>
-            <div className="rounded-lg bg-muted p-4 text-sm leading-6 text-muted-foreground">
-              Dashboard analytics are visual placeholders. Live totals will be connected in a later phase.
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+        {/* 2. Attendance Overview and Department Distribution */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <AdminAttendanceOverview dashboard={dashboard} />
+          <AdminDepartmentDistribution dashboard={dashboard} />
+        </div>
+
+        {/* 3. Pending Leaves and Recent Attendance */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <AdminPendingLeaves dashboard={dashboard} />
+          <AdminRecentAttendance dashboard={dashboard} />
+        </div>
+
+        {/* 4. Payroll Overview and Upcoming Holidays / Recent Employees */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <AdminPayrollOverview dashboard={dashboard} />
+          <div className="space-y-6">
+            <AdminUpcomingHolidays dashboard={dashboard} />
+            <AdminRecentEmployees dashboard={dashboard} />
+          </div>
+        </div>
+      </div>
     </PageContainer>
   );
 }

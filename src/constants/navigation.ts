@@ -6,7 +6,6 @@ import {
   CalendarCheck,
   CalendarClock,
   CalendarDays,
-  CircleGauge,
   Clock3,
   LayoutDashboard,
   MapPin,
@@ -62,7 +61,6 @@ export const employeeNavigation: NavigationSection[] = [
     items: [
       { label: "Dashboard", href: "/employee/dashboard", icon: LayoutDashboard },
       { label: "Attendance", href: "/employee/attendance", icon: CalendarCheck },
-      { label: "Check in", href: "/employee/check-in", icon: CircleGauge },
       { label: "Leaves", href: "/employee/leaves", icon: CalendarDays },
       { label: "Holidays", href: "/employee/holidays", icon: PartyPopper },
       { label: "Salary", href: "/employee/salary", icon: WalletCards },
