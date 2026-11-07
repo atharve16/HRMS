@@ -1,6 +1,6 @@
 import type { CreateAxiosDefaults } from "axios";
 
-export const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+export const apiBaseUrl =  "/api/v1";
 
 export const httpClientConfig: CreateAxiosDefaults = {
   baseURL: apiBaseUrl,
