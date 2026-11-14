@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { DashboardIdentity, NavigationSection } from "@/types/navigation";
+import type { DashboardIdentity, NavigationItem, NavigationSection } from "@/types/navigation";
 import { NotificationHeaderDropdown } from "@/features/notifications/components/notification-header-dropdown";
 import { useAuth } from "@/providers/auth-provider";
 
@@ -21,10 +21,11 @@ import { InstallAppButton } from "../pwa/install-app";
 import { MobileNavigation } from "./mobile-navigation";
 
 function getPageTitle(pathname: string, navigation: NavigationSection[]) {
-  const match = navigation
-    .flatMap((section) => section.items)
-    .find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
-
+  const items = navigation.flatMap((section) => section.items.flatMap((item) => [
+    item,
+    ...(item.children ?? []),
+  ]));
+  const match = items.find((item: NavigationItem) => pathname === item.href);
   return match?.label ?? "PeopleFlow";
 }
 
