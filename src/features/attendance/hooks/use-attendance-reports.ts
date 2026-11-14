@@ -16,7 +16,6 @@ export function useAttendanceMonthlyReport(params: AttendanceMonthlyReportParams
     queryKey: attendanceReportKeys.monthly(params),
     queryFn: () => getAttendanceMonthlyReport(params),
     enabled: Boolean(params.month),
-    staleTime: 60_000,
     placeholderData: (previous) => previous,
   });
 }
