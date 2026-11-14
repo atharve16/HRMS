@@ -6,11 +6,13 @@ import {
   CalendarCheck,
   CalendarClock,
   CalendarDays,
+  ClipboardList,
   Clock3,
   LayoutDashboard,
   MapPin,
   PartyPopper,
   Settings,
+  Timer,
   UserRound,
   Users,
   WalletCards,
@@ -30,7 +32,17 @@ export const adminNavigation: NavigationSection[] = [
     items: [
       { label: "Employees", href: "/admin/employees", icon: Users },
       { label: "Departments", href: "/admin/departments", icon: Building2 },
-      { label: "Attendance", href: "/admin/attendance", icon: Clock3 },
+      {
+        label: "Attendance",
+        href: "/admin/attendance",
+        icon: Clock3,
+        children: [
+          { label: "Attendance", href: "/admin/attendance", icon: ClipboardList },
+          { label: "Monthly reports", href: "/admin/attendance/reports/monthly", icon: CalendarDays },
+          { label: "Working hours", href: "/admin/attendance/reports/working-hours", icon: CalendarClock },
+          { label: "Overtime & late", href: "/admin/attendance/reports/overtime-late", icon: Timer },
+        ],
+      },
       { label: "Shifts", href: "/admin/shifts", icon: CalendarClock },
       { label: "Office locations", href: "/admin/office-locations", icon: MapPin },
       {
