@@ -63,7 +63,7 @@ export function AttendanceReportTable({
           {employees.length === 0 ? (
             <TableRow>
               <TableCell className="py-12 text-center text-sm text-muted-foreground" colSpan={dates.length + 2}>
-                No employees or report data match the selected filters.
+                {emptyMessage}
               </TableCell>
             </TableRow>
           ) : (
