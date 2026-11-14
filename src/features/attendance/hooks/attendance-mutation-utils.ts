@@ -1,6 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query";
 
 import { attendanceKeys } from "@/features/attendance/hooks/attendance-query-keys";
+import { attendanceReportKeys } from "@/features/attendance/hooks/use-attendance-reports";
 import type { AttendanceResponse } from "@/features/attendance/types/attendance-types";
 
 export function synchronizeAttendanceMutation(
@@ -29,6 +30,9 @@ export function synchronizeAttendanceMutation(
   });
   void queryClient.invalidateQueries({
     queryKey: attendanceKeys.employeeHistories(),
+  });
+  void queryClient.invalidateQueries({
+    queryKey: attendanceReportKeys.all,
   });
 }
 
