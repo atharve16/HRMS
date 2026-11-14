@@ -48,6 +48,21 @@ export function attachAuthInterceptors(client: AxiosInstance) {
 
     request._authRetry = true;
 
+    const currentToken = sessionStore.getAccessToken();
+    const sentAuthHeader =
+      request.headers && typeof request.headers.get === "function"
+        ? request.headers.get("Authorization")
+        : (request.headers as Record<string, unknown> | undefined)?.["Authorization"];
+    const sentToken =
+      typeof sentAuthHeader === "string" && sentAuthHeader.startsWith("Bearer ")
+        ? sentAuthHeader.slice(7)
+        : null;
+
+    if (currentToken && sentToken && currentToken !== sentToken) {
+      request.headers.set("Authorization", `Bearer ${currentToken}`);
+      return client(request);
+    }
+
     try {
       const refreshed = await refreshSession();
       request.headers.set("Authorization", `Bearer ${refreshed.accessToken}`);

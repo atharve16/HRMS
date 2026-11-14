@@ -110,6 +110,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [restorationAttempt]);
 
+  // Proactive background refresh before access token expiration (15-min token policy)
+  useEffect(() => {
+    if (!session?.expiresAt) return;
+
+    const timeUntilExpiry = session.expiresAt - Date.now();
+    const refreshDelay =
+      timeUntilExpiry > 60_000
+        ? timeUntilExpiry - 60_000
+        : Math.max(0, timeUntilExpiry - 5_000);
+
+    if (process.env.NODE_ENV !== "production") {
+      console.log(
+        `[AuthProvider] Scheduled proactive session refresh in ${Math.round(refreshDelay / 1000)}s`,
+      );
+    }
+
+    const timer = setTimeout(() => {
+      if (process.env.NODE_ENV !== "production") {
+        console.log("[AuthProvider] Executing proactive session refresh");
+      }
+      refreshSession().catch((error: unknown) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            "[AuthProvider] Proactive session refresh failed, relying on reactive interceptor:",
+            error,
+          );
+        }
+      });
+    }, refreshDelay);
+
+    return () => clearTimeout(timer);
+  }, [session?.expiresAt]);
+
   const establishSession = useCallback(
     (response: AuthenticationResponse) => {
       if (process.env.NODE_ENV !== "production") {

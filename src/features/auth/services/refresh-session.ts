@@ -8,10 +8,24 @@ import { httpClientConfig } from "@/services/http-config";
 
 type RefreshRequest = () => Promise<AuthenticationResponse>;
 
-export function createRefreshCoordinator(refreshRequest: RefreshRequest) {
+export function createRefreshCoordinator(
+  refreshRequest: RefreshRequest,
+  cooldownMs = 5_000,
+) {
   let inFlight: Promise<AuthenticationResponse> | null = null;
+  let lastSuccessTime = 0;
+  let lastSuccessResult: AuthenticationResponse | null = null;
 
   return function refresh() {
+    const activeToken = sessionStore.getAccessToken();
+    if (
+      lastSuccessResult &&
+      activeToken &&
+      Date.now() - lastSuccessTime < cooldownMs
+    ) {
+      return Promise.resolve(lastSuccessResult);
+    }
+
     if (inFlight) return inFlight;
 
     if (process.env.NODE_ENV !== "production") {
@@ -23,6 +37,8 @@ export function createRefreshCoordinator(refreshRequest: RefreshRequest) {
         if (process.env.NODE_ENV !== "production") {
           console.log("[Auth] Coordinated refresh request succeeded");
         }
+        lastSuccessTime = Date.now();
+        lastSuccessResult = result;
         return result;
       })
       .catch((error) => {
@@ -30,6 +46,7 @@ export function createRefreshCoordinator(refreshRequest: RefreshRequest) {
           const status = axios.isAxiosError(error) ? error.response?.status : undefined;
           console.log(`[Auth] Coordinated refresh request failed (status: ${status})`);
         }
+        lastSuccessResult = null;
         throw error;
       })
       .finally(() => {

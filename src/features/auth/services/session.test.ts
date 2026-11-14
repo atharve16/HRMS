@@ -94,6 +94,20 @@ describe("session lifecycle", () => {
     expect(request).toHaveBeenCalledTimes(2);
   });
 
+  it("reuses recently refreshed session within the cooldown window", async () => {
+    const request = vi.fn().mockResolvedValue(authenticationResponse);
+    const refresh = createRefreshCoordinator(request, 5_000);
+
+    const first = await refresh();
+    sessionStore.establish(first);
+
+    // Call refresh again immediately while active token is stored
+    const second = await refresh();
+    expect(second).toEqual(authenticationResponse);
+    // request should only be called once because of the cooldown window
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it("simulates browser reload: empty memory restored via refresh", async () => {
     // 1. Initial reload state: in-memory session is empty
     expect(sessionStore.getSnapshot()).toBeNull();

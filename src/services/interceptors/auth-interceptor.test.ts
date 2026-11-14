@@ -67,10 +67,11 @@ describe("authentication interceptor", () => {
   });
 
   it("refreshes once and retries a 401 request that carried an access token", async () => {
-    authDependencies.getAccessToken
-      .mockReturnValueOnce("expired-access")
-      .mockReturnValue("new-access");
-    authDependencies.refreshSession.mockResolvedValue({ accessToken: "new-access" });
+    authDependencies.getAccessToken.mockReturnValue("expired-access");
+    authDependencies.refreshSession.mockImplementation(async () => {
+      authDependencies.getAccessToken.mockReturnValue("new-access");
+      return { accessToken: "new-access" };
+    });
     let attempts = 0;
     const client = axios.create({
       adapter: (config) => {
@@ -91,6 +92,37 @@ describe("authentication interceptor", () => {
       data: { ok: true },
     });
     expect(authDependencies.refreshSession).toHaveBeenCalledTimes(1);
+    expect(attempts).toBe(2);
+  });
+
+  it("retries directly without calling refreshSession if the token was already refreshed", async () => {
+    // When the request starts, sessionStore has the old token
+    // But by the time the 401 arrives, sessionStore already has the new token from a concurrent refresh
+    authDependencies.getAccessToken
+      .mockReturnValueOnce("old-access") // request interceptor gets "old-access"
+      .mockReturnValue("new-access"); // response interceptor checks sessionStore and sees "new-access"
+
+    let attempts = 0;
+    const client = axios.create({
+      adapter: (config) => {
+        attempts += 1;
+        if (attempts === 1) return rejection(401, config);
+        return Promise.resolve({
+          config,
+          data: { ok: true },
+          headers: new AxiosHeaders(),
+          status: 200,
+          statusText: "OK",
+        });
+      },
+    });
+    attachAuthInterceptors(client);
+
+    await expect(client.get("/auth/me")).resolves.toMatchObject({
+      data: { ok: true },
+    });
+    // refreshSession should NOT be called because sessionStore already has the refreshed token
+    expect(authDependencies.refreshSession).not.toHaveBeenCalled();
     expect(attempts).toBe(2);
   });
 });
