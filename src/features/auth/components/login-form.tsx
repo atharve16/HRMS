@@ -79,7 +79,9 @@ export function LoginForm() {
       <form
         className="mt-8 space-y-5"
         noValidate
-        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        onSubmit={form.handleSubmit((values) => {
+          if (!mutation.isPending) mutation.mutate(values);
+        })}
       >
         <div className="space-y-2">
           <Label htmlFor="email">Work email</Label>

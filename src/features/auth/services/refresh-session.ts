@@ -1,10 +1,7 @@
-import axios from "axios";
-
 import type { AuthenticationResponse } from "@/features/auth/types/auth";
 import { sessionStore } from "@/features/auth/services/session-store";
 import type { ApiResponse } from "@/services/api-contract";
-import { toApiClientError } from "@/services/api-error";
-import { httpClientConfig } from "@/services/http-config";
+import { isApiClientError } from "@/services/api-error";
 
 type RefreshRequest = () => Promise<AuthenticationResponse>;
 
@@ -43,7 +40,7 @@ export function createRefreshCoordinator(
       })
       .catch((error) => {
         if (process.env.NODE_ENV !== "production") {
-          const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+          const status = isApiClientError(error) ? error.status : undefined;
           console.log(`[Auth] Coordinated refresh request failed (status: ${status})`);
         }
         lastSuccessResult = null;
@@ -57,19 +54,19 @@ export function createRefreshCoordinator(
   };
 }
 
-const refreshClient = axios.create(httpClientConfig);
-
 async function requestRefresh() {
   try {
-    const response = await refreshClient.post<ApiResponse<AuthenticationResponse>>(
+    // Load the shared client lazily to avoid a module cycle while the auth
+    // interceptor registers its refresh callback.
+    const { apiClient } = await import("@/services/api-client");
+    const response = await apiClient.post<ApiResponse<AuthenticationResponse>>(
       "/auth/refresh",
     );
     sessionStore.establish(response.data.data);
     return response.data.data;
   } catch (error) {
     // Only clear session store if the refresh token is genuinely invalid or expired (401)
-    const isUnauthorized =
-      axios.isAxiosError(error) && error.response?.status === 401;
+    const isUnauthorized = isApiClientError(error) && error.status === 401;
     if (isUnauthorized) {
       if (process.env.NODE_ENV !== "production") {
         console.log("[Auth] Refresh token is invalid or expired (401), clearing session");
@@ -82,7 +79,6 @@ async function requestRefresh() {
         );
       }
     }
-    if (axios.isAxiosError(error)) throw toApiClientError(error);
     throw error;
   }
 }

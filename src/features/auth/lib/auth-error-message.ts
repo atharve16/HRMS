@@ -6,8 +6,7 @@ const errorMessages: Record<string, string> = {
   OTP_ATTEMPTS_EXCEEDED:
     "Too many incorrect attempts. Request a new code to continue.",
   OTP_RESEND_COOLDOWN: "Please wait before requesting another code.",
-  RATE_LIMIT_EXCEEDED:
-    "Too many requests were made. Please wait a few minutes and try again.",
+  RATE_LIMIT_EXCEEDED: "Too many OTP requests. Please wait before trying again.",
   EMPLOYEE_INACTIVE:
     "This account is inactive. Contact your HR administrator for help.",
   AUTH_DELIVERY_FAILED:
@@ -22,12 +21,24 @@ export function getAuthErrorMessage(error: unknown) {
     return "Something went wrong. Please try again.";
   }
 
+  if (error.isTimeout) {
+    return "The HRMS service is taking longer than expected. Please try again.";
+  }
+
   if (error.code && errorMessages[error.code]) {
     return errorMessages[error.code];
   }
 
   if (!error.status) {
-    return "We could not reach the HRMS service. Check your connection and try again.";
+    return "Unable to connect to the HRMS service. Check your connection and try again.";
+  }
+
+  if (error.status === 429) {
+    return "Too many OTP requests. Please wait before trying again.";
+  }
+
+  if ([502, 503, 504].includes(error.status)) {
+    return "The HRMS service is temporarily unavailable. Please try again shortly.";
   }
 
   if (error.status >= 500) {

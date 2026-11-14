@@ -28,7 +28,7 @@ export function attachAuthInterceptors(client: AxiosInstance) {
   client.interceptors.request.use((config: RetryableRequestConfig) => {
     const accessToken = sessionStore.getAccessToken();
 
-    if (accessToken) {
+    if (accessToken && !isPublicAuthRequest(config.url)) {
       config.headers.set("Authorization", `Bearer ${accessToken}`);
       config._hadAccessToken = true;
     }

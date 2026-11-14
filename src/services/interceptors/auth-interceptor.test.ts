@@ -55,6 +55,22 @@ describe("authentication interceptor", () => {
     expect(authDependencies.refreshSession).not.toHaveBeenCalled();
   });
 
+  it("does not attach stale access tokens to public authentication requests", async () => {
+    authDependencies.getAccessToken.mockReturnValue("stale-access");
+    let sentAuthorization: unknown;
+    const client = axios.create({
+      adapter: async (config) => {
+        sentAuthorization = config.headers.get("Authorization");
+        return { config, data: { ok: true }, headers: new AxiosHeaders(), status: 200,
+          statusText: "OK" };
+      },
+    });
+    attachAuthInterceptors(client);
+
+    await client.post("/auth/request-otp", { email: "person@example.com" });
+    expect(sentAuthorization).toBeUndefined();
+  });
+
   it("does not refresh an anonymous 401 response", async () => {
     authDependencies.getAccessToken.mockReturnValue(undefined);
     const client = axios.create({ adapter: (config) => rejection(401, config) });

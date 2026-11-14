@@ -6,6 +6,7 @@ export class ApiClientError extends Error {
   readonly status: number | undefined;
   readonly code: string | undefined;
   readonly details: Record<string, string>;
+  readonly isTimeout: boolean;
 
   constructor(
     message: string,
@@ -13,6 +14,7 @@ export class ApiClientError extends Error {
       status?: number;
       code?: string;
       details?: Record<string, string>;
+      isTimeout?: boolean;
     } = {},
   ) {
     super(message);
@@ -20,6 +22,7 @@ export class ApiClientError extends Error {
     this.status = options.status;
     this.code = options.code;
     this.details = options.details ?? {};
+    this.isTimeout = options.isTimeout ?? false;
   }
 }
 
@@ -39,14 +42,23 @@ export function toApiClientError(error: AxiosError<unknown>) {
   const envelope = isErrorEnvelope(error.response?.data)
     ? error.response.data
     : undefined;
+  const isTimeout =
+    error.code === "ECONNABORTED" ||
+    error.code === "ETIMEDOUT" ||
+    String(error.message ?? "").toLowerCase().includes("timeout");
   const message =
     envelope?.message ??
-    (status ? `Request failed with status ${status}.` : "Unable to reach the server.");
+    (isTimeout
+      ? "The request timed out."
+      : status
+        ? `Request failed with status ${status}.`
+        : "Unable to reach the server.");
 
   return new ApiClientError(message, {
     status,
     code: envelope?.data.code ?? error.code,
     details: envelope?.data.details,
+    isTimeout,
   });
 }
 

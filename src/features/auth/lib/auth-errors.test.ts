@@ -34,14 +34,21 @@ describe("backend error handling", () => {
     ["OTP_EXPIRED", "expired"],
     ["OTP_ATTEMPTS_EXCEEDED", "Too many incorrect"],
     ["EMPLOYEE_INACTIVE", "inactive"],
-    ["RATE_LIMIT_EXCEEDED", "Too many requests"],
+    ["RATE_LIMIT_EXCEEDED", "Too many OTP requests"],
   ])("maps %s to actionable copy", (code, phrase) => {
     expect(getAuthErrorMessage(new ApiClientError("backend", { code }))).toContain(phrase);
   });
 
   it("distinguishes a network failure", () => {
     expect(getAuthErrorMessage(new ApiClientError("network"))).toContain(
-      "could not reach",
+      "Unable to connect",
     );
+  });
+
+  it("distinguishes timeout and server availability failures", () => {
+    expect(getAuthErrorMessage(new ApiClientError("timeout", { isTimeout: true })))
+      .toContain("taking longer");
+    expect(getAuthErrorMessage(new ApiClientError("gateway", { status: 502 })))
+      .toContain("temporarily unavailable");
   });
 });
