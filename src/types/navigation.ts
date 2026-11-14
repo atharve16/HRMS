@@ -4,6 +4,7 @@ export type NavigationItem = {
   label: string;
   href: string;
   icon: LucideIcon;
+  children?: NavigationItem[];
 };
 
 export type NavigationSection = {
