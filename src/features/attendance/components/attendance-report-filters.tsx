@@ -37,7 +37,10 @@ export function AttendanceReportFilters({
           <Input
             className="pl-9"
             id="attendance-report-month"
-            onChange={(event) => onMonthChange(event.target.value)}
+            onChange={(event) => {
+              if (event.target.value) onMonthChange(event.target.value);
+            }}
+            required
             type="month"
             value={month}
           />
