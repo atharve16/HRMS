@@ -25,8 +25,11 @@ function getPageTitle(pathname: string, navigation: NavigationSection[]) {
     item,
     ...(item.children ?? []),
   ]));
-  const match = items.find((item: NavigationItem) => pathname === item.href);
-  return match?.label ?? "PeopleFlow";
+  const exactMatch = items.find((item: NavigationItem) => pathname === item.href);
+  if (exactMatch) return exactMatch.label;
+
+  const parentMatch = items.find((item: NavigationItem) => pathname.startsWith(`${item.href}/`));
+  return parentMatch?.label ?? "PeopleFlow";
 }
 
 type DashboardHeaderProps = {
