@@ -24,7 +24,7 @@ export function AttendanceReportFilters({
   onDepartmentChange,
   onEmployeeCodeChange,
 }: AttendanceReportFiltersProps) {
-  const departmentsQuery = useDepartments({ page: 0, limit: 100, status: "ACTIVE" });
+  const departmentsQuery = useDepartments({ page: 0, limit: 100 });
 
   return (
     <div className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-3">
