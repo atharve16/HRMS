@@ -24,5 +24,8 @@ export const attendanceKeys = {
   employeeHistories: () => [...attendanceKeys.admin(), "employee"] as const,
   employeeHistory: (employeeId: string, params?: AttendanceHistoryParams) =>
     [...attendanceKeys.employeeHistories(), employeeId, params] as const,
+  corrections: () => [...attendanceKeys.all, "corrections"] as const,
+  myCorrections: () => [...attendanceKeys.corrections(), "me"] as const,
+  adminCorrections: (params?: { status?: string; page?: number; limit?: number }) => [...attendanceKeys.corrections(), "admin", params] as const,
 };
 

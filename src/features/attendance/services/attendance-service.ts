@@ -8,6 +8,11 @@ import type {
   AttendanceSummaryParams,
   AttendanceSummaryResponse,
   GpsRequest,
+  AttendanceCorrectionResponse,
+  SubmitAttendanceCorrectionRequest,
+  ReviewAttendanceCorrectionRequest,
+  AttendanceCorrectionStatus,
+  AttendanceCorrectionPageResponse,
 } from "@/features/attendance/types/attendance-types";
 import type { ApiResponse } from "@/services/api-contract";
 import { apiClient } from "@/services/api-client";
@@ -107,6 +112,36 @@ export async function getEmployeeAttendanceHistory(
     `/admin/employees/${employeeId}/attendance`,
     { params },
   );
+  return response.data.data;
+}
+
+export async function submitAttendanceCorrection(request: SubmitAttendanceCorrectionRequest) {
+  const response = await apiClient.post<ApiResponse<AttendanceCorrectionResponse>>("/attendance/correction-requests", request);
+  return response.data.data;
+}
+
+export async function getMyAttendanceCorrections() {
+  const response = await apiClient.get<ApiResponse<AttendanceCorrectionResponse[]>>("/attendance/correction-requests/my");
+  return response.data.data;
+}
+
+export async function cancelAttendanceCorrection(id: string) {
+  const response = await apiClient.post<ApiResponse<AttendanceCorrectionResponse>>(`/attendance/correction-requests/${encodeURIComponent(id)}/cancel`);
+  return response.data.data;
+}
+
+export async function listAdminAttendanceCorrections(params?: { employeeId?: string; departmentId?: string; fromDate?: string; toDate?: string; status?: AttendanceCorrectionStatus; page?: number; limit?: number }) {
+  const response = await apiClient.get<ApiResponse<AttendanceCorrectionPageResponse>>("/admin/attendance/correction-requests", { params });
+  return response.data.data;
+}
+
+export async function approveAttendanceCorrection(id: string, request?: ReviewAttendanceCorrectionRequest) {
+  const response = await apiClient.post<ApiResponse<AttendanceCorrectionResponse>>(`/admin/attendance/correction-requests/${encodeURIComponent(id)}/approve`, request ?? {});
+  return response.data.data;
+}
+
+export async function rejectAttendanceCorrection(id: string, request?: ReviewAttendanceCorrectionRequest) {
+  const response = await apiClient.post<ApiResponse<AttendanceCorrectionResponse>>(`/admin/attendance/correction-requests/${encodeURIComponent(id)}/reject`, request ?? {});
   return response.data.data;
 }
 

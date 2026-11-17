@@ -4,9 +4,10 @@ export type AttendanceStatus =
   | "INCOMPLETE"
   | "ABSENT"
   | "HOLIDAY"
-  | "ON_LEAVE";
+  | "ON_LEAVE"
+  | "HALF_DAY";
 
-export type SessionStatus = "OPEN" | "COMPLETED";
+export type SessionStatus = "OPEN" | "COMPLETED" | "INCOMPLETE_CHECKOUT";
 
 export interface GpsEvidence {
   latitude: number;
@@ -24,13 +25,18 @@ export interface AttendanceSession {
   sessionId: string;
   checkInAt: string;
   checkOutAt: string | null;
-  checkInLocation: GpsEvidence;
+  checkInLocation: GpsEvidence | null;
   checkOutLocation: GpsEvidence | null;
   checkInDistanceMeters: number;
   checkOutDistanceMeters: number;
   checkInGpsAccuracyMeters: number;
   checkOutGpsAccuracyMeters: number;
   status: SessionStatus;
+  closureType?: string | null;
+  closureReason?: string | null;
+  autoClosedAt?: string | null;
+  originalCheckInAt?: string | null;
+  attendanceDate?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -132,6 +138,50 @@ export interface AttendanceCorrectionRequest {
   correctedCheckOutAt?: string | null; // ISO 8601 or null
   reason: string;
 }
+
+export type AttendanceCorrectionStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+export type MissingPunchType = "CHECK_IN" | "CHECK_OUT" | "BOTH";
+
+export interface SubmitAttendanceCorrectionRequest {
+  attendanceDate: string;
+  missingPunch: MissingPunchType;
+  requestedCheckInTime?: string;
+  requestedCheckOutTime?: string;
+  reason: string;
+}
+
+export interface AttendanceCorrectionResponse {
+  id: string;
+  employeeId: string;
+  employeeCode: string;
+  employeeName: string;
+  departmentId?: string;
+  attendanceDate: string;
+  missingPunch: MissingPunchType;
+  requestedCheckInAt?: string | null;
+  requestedCheckOutAt?: string | null;
+  reason: string;
+  status: AttendanceCorrectionStatus;
+  adminResponse?: string | null;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  existingAttendance?: AttendanceResponse | null;
+  shift?: ShiftSnapshot | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface AttendanceCorrectionPageResponse {
+  content: AttendanceCorrectionResponse[];
+  page: number;
+  limit: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
+
+export interface ReviewAttendanceCorrectionRequest { response?: string; }
 
 export interface AttendanceHistoryParams {
   fromDate?: string;

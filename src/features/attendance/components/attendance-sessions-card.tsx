@@ -39,8 +39,9 @@ export function AttendanceSessionsCard({
               const outTime = session.checkOutAt
                 ? new Date(session.checkOutAt).getTime()
                 : null;
+              const isIncompleteCheckout = session.status === "INCOMPLETE_CHECKOUT";
               const durationMinutes =
-                outTime && outTime > inTime
+                !isIncompleteCheckout && outTime && outTime > inTime
                   ? Math.round((outTime - inTime) / 60000)
                   : 0;
 
@@ -64,12 +65,14 @@ export function AttendanceSessionsCard({
                       <span className="font-medium text-foreground text-sm">
                         {formatAttendanceTime(session.checkInAt)}
                       </span>
-                      <div className="mt-1 flex items-center gap-1.5 text-muted-foreground text-[11px]">
-                        <Navigation aria-hidden="true" className="size-3 text-primary shrink-0" />
-                        <span>
-                          {formatDistanceMeters(session.checkInDistanceMeters)} from office ({formatGpsAccuracy(session.checkInGpsAccuracyMeters)})
-                        </span>
-                      </div>
+                      {session.checkInLocation && (
+                        <div className="mt-1 flex items-center gap-1.5 text-muted-foreground text-[11px]">
+                          <Navigation aria-hidden="true" className="size-3 text-primary shrink-0" />
+                          <span>
+                            {formatDistanceMeters(session.checkInDistanceMeters)} from office ({formatGpsAccuracy(session.checkInGpsAccuracyMeters)})
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -77,9 +80,15 @@ export function AttendanceSessionsCard({
                         Check-out
                       </span>
                       <span className="font-medium text-foreground text-sm">
-                        {session.checkOutAt ? formatAttendanceTime(session.checkOutAt) : "Session in progress..."}
+                        {isIncompleteCheckout ? (
+                          <span className="text-destructive font-semibold">Incomplete Checkout</span>
+                        ) : session.checkOutAt ? (
+                          formatAttendanceTime(session.checkOutAt)
+                        ) : (
+                          "Session in progress..."
+                        )}
                       </span>
-                      {session.checkOutAt && (
+                      {!isIncompleteCheckout && session.checkOutAt && session.checkOutLocation && (
                         <div className="mt-1 flex items-center gap-1.5 text-muted-foreground text-[11px]">
                           <Navigation aria-hidden="true" className="size-3 text-primary shrink-0" />
                           <span>
@@ -90,14 +99,18 @@ export function AttendanceSessionsCard({
                     </div>
                   </div>
 
-                  {outTime && (
-                    <div className="border-t pt-2 text-muted-foreground flex items-center justify-between text-[11px]">
-                      <span>Session duration:</span>
-                      <span className="font-semibold text-foreground">
-                        {formatDurationMinutes(durationMinutes)}
-                      </span>
+                  {isIncompleteCheckout && (
+                    <div className="rounded-md bg-destructive/10 p-2 text-[11px] text-destructive">
+                      {session.closureReason || "Automatically closed at midnight due to missing checkout."}
                     </div>
                   )}
+
+                  <div className="border-t pt-2 text-muted-foreground flex items-center justify-between text-[11px]">
+                    <span>Session duration:</span>
+                    <span className="font-semibold text-foreground">
+                      {isIncompleteCheckout ? "00:00" : formatDurationMinutes(durationMinutes)}
+                    </span>
+                  </div>
                 </div>
               );
             })}

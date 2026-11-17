@@ -20,5 +20,11 @@ export const leaveKeys = {
   employeeBalances: () => [...leaveKeys.admin(), "employee-balance"] as const,
   employeeBalance: (employeeId: string, year?: number) =>
     [...leaveKeys.employeeBalances(), employeeId, year] as const,
+  monthly: () => [...leaveKeys.me(), "monthly"] as const,
+  monthlyBalance: (month: string) => [...leaveKeys.monthly(), month] as const,
+  allocation: () => [...leaveKeys.admin(), "allocation"] as const,
+  allocationBalance: (employeeId: string, month: string) => [...leaveKeys.allocation(), "balance", employeeId, month] as const,
+  allocationHistory: (employeeId: string, month: string) => [...leaveKeys.allocation(), "history", employeeId, month] as const,
+  dashboard: (month: string) => [...leaveKeys.allocation(), "dashboard", month] as const,
 };
 

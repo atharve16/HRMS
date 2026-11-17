@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { ApplyLeaveDialog } from "@/features/leaves/components/apply-leave-dialog";
 import { LeaveBalanceCards } from "@/features/leaves/components/leave-balance-cards";
+import { MonthlyLeaveSummary } from "@/features/leaves/components/monthly-leave-summary";
 import { LeaveCard } from "@/features/leaves/components/leave-card";
 import {
   LeaveEmptyState,
@@ -91,6 +92,8 @@ export function EmployeeLeaveScreen() {
             </div>
           }
         />
+
+        <MonthlyLeaveSummary month={new Date().toISOString().slice(0, 7)} />
 
         {/* Leave Balances Section */}
         {balancesQuery.isLoading ? (

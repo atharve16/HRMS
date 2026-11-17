@@ -19,6 +19,7 @@ import {
 } from "@/features/attendance/components/attendance-query-state";
 import { AttendanceSummaryCards } from "@/features/attendance/components/attendance-summary-cards";
 import { AttendanceTable } from "@/features/attendance/components/attendance-table";
+import { AdminAttendanceCorrectionDialog } from "@/features/attendance/components/admin-attendance-correction-dialog";
 import {
   useAdminAttendance,
   useAdminAttendanceSummary,
@@ -126,6 +127,7 @@ export function AdminAttendanceDirectory() {
   return (
     <PageContainer>
       <PageHeader
+        actions={<AdminAttendanceCorrectionDialog />}
         description="Monitor organization-wide punches, geofence validations, daily work hours, and manage punch corrections."
         eyebrow="Workforce management"
         title="Attendance management"

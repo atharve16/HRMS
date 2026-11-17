@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   ArrowLeft,
   Calendar,
   Clock,
@@ -80,6 +81,18 @@ export function AdminAttendanceDetailScreen() {
         />
       ) : record ? (
         <div className="space-y-6">
+          {/* Incomplete Checkout Notice */}
+          {(record.sessions.some((s) => s.status === "INCOMPLETE_CHECKOUT") ||
+            record.attendanceStatus === "HALF_DAY") && (
+            <div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3.5 text-xs text-destructive">
+              <AlertTriangle className="size-4 shrink-0" />
+              <span>
+                This attendance day has an incomplete checkout and was automatically closed at midnight.
+                Calculated working hours are set to 00:00 (Half Day) until an admin correction is applied.
+              </span>
+            </div>
+          )}
+
           {/* Top Overview Banner */}
           <Card>
             <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -147,9 +160,16 @@ export function AdminAttendanceDetailScreen() {
               <CardContent className="pt-2">
                 <dl className="grid gap-4 sm:grid-cols-2">
                   <ValueRow label="Total worked time">
-                    <span className="font-semibold text-foreground">
-                      {formatDurationMinutes(record.totalWorkedMinutes)}
-                    </span>
+                    {record.sessions.some((s) => s.status === "INCOMPLETE_CHECKOUT") ||
+                    record.attendanceStatus === "HALF_DAY" ? (
+                      <span className="font-semibold text-destructive">
+                        00:00 (Incomplete Checkout)
+                      </span>
+                    ) : (
+                      <span className="font-semibold text-foreground">
+                        {formatDurationMinutes(record.totalWorkedMinutes)}
+                      </span>
+                    )}
                   </ValueRow>
                   <ValueRow label="Total break time">
                     {formatDurationMinutes(record.totalBreakMinutes)}
@@ -173,7 +193,12 @@ export function AdminAttendanceDetailScreen() {
                     )}
                   </ValueRow>
                   <ValueRow label="Overtime">
-                    {record.overtimeMinutes > 0 ? (
+                    {record.sessions.some((s) => s.status === "INCOMPLETE_CHECKOUT") ||
+                    record.attendanceStatus === "HALF_DAY" ? (
+                      <span className="text-muted-foreground">
+                        None (Incomplete Checkout)
+                      </span>
+                    ) : record.overtimeMinutes > 0 ? (
                       <span className="text-info font-semibold">
                         +{formatDurationMinutes(record.overtimeMinutes)}
                       </span>

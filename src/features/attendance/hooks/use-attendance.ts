@@ -20,6 +20,12 @@ import {
   getMyAttendanceHistory,
   getMyAttendanceStatus,
   listAdminAttendance,
+  submitAttendanceCorrection,
+  getMyAttendanceCorrections,
+  cancelAttendanceCorrection,
+  listAdminAttendanceCorrections,
+  approveAttendanceCorrection,
+  rejectAttendanceCorrection,
 } from "@/features/attendance/services/attendance-service";
 import type {
   AdminAttendanceParams,
@@ -27,6 +33,8 @@ import type {
   AttendanceHistoryParams,
   AttendanceSummaryParams,
   GpsRequest,
+  SubmitAttendanceCorrectionRequest,
+  ReviewAttendanceCorrectionRequest,
 } from "@/features/attendance/types/attendance-types";
 
 export function myTodayAttendanceQueryOptions(date: string) {
@@ -151,5 +159,28 @@ export function useCorrectAttendance(attendanceId: string) {
       synchronizeAttendanceMutation(queryClient, attendance);
     },
   });
+}
+
+export function useMyAttendanceCorrections() {
+  return useQuery({ queryKey: attendanceKeys.myCorrections(), queryFn: getMyAttendanceCorrections });
+}
+
+export function useSubmitAttendanceCorrection() {
+  const queryClient = useQueryClient();
+  return useMutation({ mutationFn: (request: SubmitAttendanceCorrectionRequest) => submitAttendanceCorrection(request), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: attendanceKeys.myCorrections() }); } });
+}
+
+export function useCancelAttendanceCorrection() {
+  const queryClient = useQueryClient();
+  return useMutation({ mutationFn: (id: string) => cancelAttendanceCorrection(id), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: attendanceKeys.myCorrections() }); } });
+}
+
+export function useAdminAttendanceCorrections(params?: { employeeId?: string; departmentId?: string; fromDate?: string; toDate?: string; status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"; page?: number; limit?: number }) {
+  return useQuery({ queryKey: attendanceKeys.adminCorrections(params), queryFn: () => listAdminAttendanceCorrections(params), placeholderData: (previous) => previous });
+}
+
+export function useReviewAttendanceCorrection(action: "approve" | "reject") {
+  const queryClient = useQueryClient();
+  return useMutation({ mutationFn: ({ id, request }: { id: string; request?: ReviewAttendanceCorrectionRequest }) => action === "approve" ? approveAttendanceCorrection(id, request) : rejectAttendanceCorrection(id, request), onSuccess: (data) => { void queryClient.invalidateQueries({ queryKey: attendanceKeys.corrections() }); if (data.existingAttendance) synchronizeAttendanceMutation(queryClient, data.existingAttendance); } });
 }
 

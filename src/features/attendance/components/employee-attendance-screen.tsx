@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   CalendarDays,
   Coffee,
   MapPin,
@@ -24,6 +25,8 @@ import { AttendanceSessionsCard } from "@/features/attendance/components/attenda
 import { AttendanceStatusBadge } from "@/features/attendance/components/attendance-status-badge";
 import { AttendanceTable } from "@/features/attendance/components/attendance-table";
 import { EmployeeCheckInWidget } from "@/features/attendance/components/employee-check-in-widget";
+import { AttendanceCorrectionRequestDialog } from "@/features/attendance/components/attendance-correction-request-dialog";
+import { AttendanceCorrectionRequestHistory } from "@/features/attendance/components/attendance-correction-request-history";
 import {
   useMyAttendanceHistory,
   useMyAttendanceStatus,
@@ -56,6 +59,19 @@ export function EmployeeAttendanceScreen() {
   const todayRecord = todayQuery.data;
   const status = statusQuery.data;
 
+  const hasIncompleteToday =
+    todayRecord &&
+    (todayRecord.attendanceStatus === "HALF_DAY" ||
+      todayRecord.sessions.some((s) => s.status === "INCOMPLETE_CHECKOUT"));
+
+  const incompleteHistoryRecord = historyQuery.data?.content.find(
+    (r) =>
+      r.attendanceStatus === "HALF_DAY" ||
+      r.sessions.some((s) => s.status === "INCOMPLETE_CHECKOUT")
+  );
+
+  const incompleteRecord = hasIncompleteToday ? todayRecord : incompleteHistoryRecord;
+
   function handleFilterReset() {
     setFromDate("");
     setToDate("");
@@ -74,9 +90,41 @@ export function EmployeeAttendanceScreen() {
         description="Punch in and out for scheduled shifts and review your attendance history."
         eyebrow="Time & Attendance"
         title="My attendance"
+        actions={<AttendanceCorrectionRequestDialog />}
       />
 
       <div className="space-y-6">
+        {/* Incomplete Checkout Alert Banner */}
+        {incompleteRecord && (
+          <div className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle aria-hidden="true" className="size-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-destructive text-sm">
+                  Incomplete checkout detected for {formatAttendanceDate(incompleteRecord.workDate)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Your session was automatically closed at midnight. Total working hours are set to 00:00 (Half Day).
+                  Please submit a checkout correction request for admin review.
+                </p>
+              </div>
+            </div>
+            <AttendanceCorrectionRequestDialog
+              initialDate={incompleteRecord.workDate}
+              initialMissingPunch="CHECK_OUT"
+              onSubmitted={() => {
+                todayQuery.refetch();
+                historyQuery.refetch();
+              }}
+              trigger={
+                <Button size="sm" variant="destructive" className="shrink-0 text-xs">
+                  Request Checkout Correction
+                </Button>
+              }
+            />
+          </div>
+        )}
+
         {/* Punch In / Out Action Widget */}
         {statusQuery.isLoading ? (
           <AttendanceSkeleton />
@@ -303,6 +351,8 @@ export function EmployeeAttendanceScreen() {
             )
           ) : null}
         </div>
+
+        <AttendanceCorrectionRequestHistory />
       </div>
     </PageContainer>
   );

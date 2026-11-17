@@ -22,6 +22,7 @@ import {
   LeaveSkeleton,
 } from "@/features/leaves/components/leave-query-state";
 import { LeaveTable } from "@/features/leaves/components/leave-table";
+import { AdminLeaveAllocationDialog } from "@/features/leaves/components/admin-leave-allocation-dialog";
 import { useAdminLeaves } from "@/features/leaves/hooks/use-leaves";
 import type {
   LeaveSearchParams,
@@ -78,6 +79,7 @@ export function AdminLeaveDirectory() {
         <PageHeader
           title="Leave Requests"
           description="Manage and review employee leave applications across the organization."
+          actions={<AdminLeaveAllocationDialog />}
         />
 
         {/* Quick Status Tabs */}

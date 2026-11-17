@@ -1,7 +1,7 @@
 import { MapPin } from "lucide-react";
 import Link from "next/link";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AttendanceCorrectionDialog } from "@/features/attendance/components/attendance-correction-dialog";
+import { AttendanceCorrectionRequestDialog } from "@/features/attendance/components/attendance-correction-request-dialog";
 import { AttendanceStatusBadge } from "@/features/attendance/components/attendance-status-badge";
 import type { AttendanceResponse } from "@/features/attendance/types/attendance-types";
 import {
@@ -47,6 +47,9 @@ export function AttendanceTable({
             const firstIn = record.sessions[0]?.checkInAt;
             const completedSessions = record.sessions.filter((s) => s.checkOutAt);
             const lastOut = completedSessions[completedSessions.length - 1]?.checkOutAt;
+            const isIncomplete =
+              record.sessions.some((s) => s.status === "INCOMPLETE_CHECKOUT") ||
+              record.attendanceStatus === "HALF_DAY";
 
             return (
               <TableRow key={record.id}>
@@ -80,18 +83,22 @@ export function AttendanceTable({
                   {formatAttendanceTime(firstIn)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-sm">
-                  {formatAttendanceTime(lastOut)}
+                  {isIncomplete ? (
+                    <span className="font-semibold text-destructive">Incomplete Checkout</span>
+                  ) : (
+                    formatAttendanceTime(lastOut)
+                  )}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
                   <div className="text-sm font-medium text-foreground">
-                    {formatDurationMinutes(record.totalWorkedMinutes)}
+                    {isIncomplete ? "00:00" : formatDurationMinutes(record.totalWorkedMinutes)}
                   </div>
-                  {record.lateByMinutes > 0 && (
+                  {!isIncomplete && record.lateByMinutes > 0 && (
                     <span className="text-[11px] text-warning block">
                       +{record.lateByMinutes}m late
                     </span>
                   )}
-                  {record.overtimeMinutes > 0 && (
+                  {!isIncomplete && record.overtimeMinutes > 0 && (
                     <span className="text-[11px] text-info block">
                       +{formatDurationMinutes(record.overtimeMinutes)} OT
                     </span>
@@ -110,10 +117,17 @@ export function AttendanceTable({
                         >
                           Details
                         </Link>
-                        {record.sessions.length > 0 && (
-                          <AttendanceCorrectionDialog attendance={record} />
-                        )}
                       </>
+                    ) : isIncomplete ? (
+                      <AttendanceCorrectionRequestDialog
+                        initialDate={record.workDate}
+                        initialMissingPunch="CHECK_OUT"
+                        trigger={
+                          <Button size="sm" variant="outline" className="text-xs">
+                            Request Checkout Correction
+                          </Button>
+                        }
+                      />
                     ) : (
                       <span className="text-xs text-muted-foreground">
                         {record.sessions.length} session{record.sessions.length === 1 ? "" : "s"}
@@ -129,4 +143,3 @@ export function AttendanceTable({
     </div>
   );
 }
-

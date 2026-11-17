@@ -1,4 +1,4 @@
-import { CheckCircle, Radio } from "lucide-react";
+import { AlertTriangle, CheckCircle, Radio } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import type { SessionStatus } from "@/features/attendance/types/attendance-types";
@@ -17,6 +17,7 @@ export function SessionStatusBadge({
     variant: "neutral",
   };
   const isOpen = status === "OPEN";
+  const isIncomplete = status === "INCOMPLETE_CHECKOUT";
 
   return (
     <Badge
@@ -25,6 +26,8 @@ export function SessionStatusBadge({
     >
       {isOpen ? (
         <Radio aria-hidden="true" className="size-3 shrink-0 animate-pulse text-warning" />
+      ) : isIncomplete ? (
+        <AlertTriangle aria-hidden="true" className="size-3 shrink-0 text-destructive" />
       ) : (
         <CheckCircle aria-hidden="true" className="size-3 shrink-0" />
       )}

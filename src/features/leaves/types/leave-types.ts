@@ -52,6 +52,64 @@ export interface LeaveBalanceResponse {
   updatedAt: string; // ISO 8601
 }
 
+export interface LeavePeriodBalanceResponse {
+  id: string;
+  employeeId: string;
+  leaveType: LeaveType;
+  period: string;
+  allocatedDays: number;
+  carriedForwardDays: number;
+  expiredDays: number;
+  usedDays: number;
+  pendingDays: number;
+  availableDays: number;
+  updatedAt: string | null;
+}
+
+export interface LeaveLedgerEntryResponse {
+  id: string;
+  employeeId: string;
+  leaveType: LeaveType;
+  period: string;
+  entryType: string;
+  days: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  actorId: string;
+  reason: string;
+  source: string;
+  createdAt: string | null;
+}
+
+export interface LeaveAllocationRequest {
+  leaveType: Exclude<LeaveType, "LWP">;
+  month: string;
+  days: number;
+  reason: string;
+}
+
+export interface LeavePolicyRequest {
+  leaveType: Exclude<LeaveType, "LWP">;
+  monthlyEntitlement: number;
+  maxCarryForwardDays?: number | null;
+}
+
+export interface LeavePolicyResponse extends LeavePolicyRequest {
+  id: string;
+  scope: "COMPANY" | "EMPLOYEE";
+  employeeId: string | null;
+  updatedAt: string | null;
+}
+
+export interface LeaveDashboardResponse {
+  month: string;
+  totalAllocated: number;
+  totalConsumed: number;
+  pendingApplications: number;
+  lowBalanceEmployees: number;
+  balances: LeavePeriodBalanceResponse[];
+}
+
 export interface LeaveRequestPageResponse {
   content: LeaveRequestResponse[];
   page: number;

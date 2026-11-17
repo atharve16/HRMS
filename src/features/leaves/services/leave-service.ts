@@ -3,6 +3,12 @@ import type {
   ApplyLeaveRequest,
   EmployeeLeaveParams,
   LeaveBalanceResponse,
+  LeaveAllocationRequest,
+  LeaveDashboardResponse,
+  LeaveLedgerEntryResponse,
+  LeavePeriodBalanceResponse,
+  LeavePolicyRequest,
+  LeavePolicyResponse,
   LeaveRequestPageResponse,
   LeaveRequestResponse,
   LeaveSearchParams,
@@ -108,6 +114,49 @@ export async function allocateEmployeeLeaveBalance(
     `/admin/employees/${encodeURIComponent(employeeId)}/leave-balance`,
     request,
   );
+  return response.data.data;
+}
+
+export async function getMyMonthlyLeaveBalances(month: string): Promise<LeavePeriodBalanceResponse[]> {
+  const response = await apiClient.get<ApiResponse<LeavePeriodBalanceResponse[]>>(
+    "/leaves/me/period-balance", { params: { month } },
+  );
+  return response.data.data;
+}
+
+export async function getEmployeeMonthlyLeaveBalances(employeeId: string, month: string) {
+  const response = await apiClient.get<ApiResponse<LeavePeriodBalanceResponse[]>>(
+    `/admin/leave-allocation/employees/${encodeURIComponent(employeeId)}/balances`, { params: { month } },
+  );
+  return response.data.data;
+}
+
+export async function getEmployeeLeaveAllocationHistory(employeeId: string, month: string) {
+  const response = await apiClient.get<ApiResponse<LeaveLedgerEntryResponse[]>>(
+    `/admin/leave-allocation/employees/${encodeURIComponent(employeeId)}/history`, { params: { month } },
+  );
+  return response.data.data;
+}
+
+export async function allocateMonthlyLeave(employeeId: string, request: LeaveAllocationRequest) {
+  const response = await apiClient.post<ApiResponse<LeavePeriodBalanceResponse>>(
+    `/admin/leave-allocation/employees/${encodeURIComponent(employeeId)}/allocations`, request,
+  );
+  return response.data.data;
+}
+
+export async function saveCompanyLeavePolicy(request: LeavePolicyRequest) {
+  const response = await apiClient.put<ApiResponse<LeavePolicyResponse>>("/admin/leave-allocation/policies/company", request);
+  return response.data.data;
+}
+
+export async function saveEmployeeLeavePolicy(employeeId: string, request: LeavePolicyRequest) {
+  const response = await apiClient.put<ApiResponse<LeavePolicyResponse>>(`/admin/leave-allocation/employees/${encodeURIComponent(employeeId)}/policies`, request);
+  return response.data.data;
+}
+
+export async function getLeaveDashboard(month: string) {
+  const response = await apiClient.get<ApiResponse<LeaveDashboardResponse>>("/admin/leave-allocation/dashboard", { params: { month } });
   return response.data.data;
 }
 

@@ -53,3 +53,17 @@ export type GpsRequestFormValues = z.infer<typeof gpsRequestSchema>;
 export type AttendanceCorrectionFormValues = z.infer<
   typeof attendanceCorrectionSchema
 >;
+
+export const attendanceCorrectionRequestSchema = z.object({
+  attendanceDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date is required."),
+  missingPunch: z.enum(["CHECK_IN", "CHECK_OUT", "BOTH"]),
+  requestedCheckInTime: z.string().optional(),
+  requestedCheckOutTime: z.string().optional(),
+  reason: z.string().trim().min(1, "Reason is required.").max(1000, "Reason must be 1000 characters or fewer."),
+}).superRefine((data, ctx) => {
+  if ((data.missingPunch === "CHECK_IN" || data.missingPunch === "BOTH") && !data.requestedCheckInTime) ctx.addIssue({ code: "custom", path: ["requestedCheckInTime"], message: "Check-in time is required." });
+  if ((data.missingPunch === "CHECK_OUT" || data.missingPunch === "BOTH") && !data.requestedCheckOutTime) ctx.addIssue({ code: "custom", path: ["requestedCheckOutTime"], message: "Check-out time is required." });
+  if (data.requestedCheckInTime && data.requestedCheckOutTime && data.requestedCheckOutTime <= data.requestedCheckInTime) ctx.addIssue({ code: "custom", path: ["requestedCheckOutTime"], message: "Check-out must be later than check-in." });
+});
+
+export type AttendanceCorrectionRequestFormValues = z.infer<typeof attendanceCorrectionRequestSchema>;

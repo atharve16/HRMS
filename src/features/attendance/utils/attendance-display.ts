@@ -119,6 +119,11 @@ export const attendanceStatusConfig: Record<
     variant: "neutral",
     description: "Approved employee leave on this work date.",
   },
+  HALF_DAY: {
+    label: "Half Day",
+    variant: "warning",
+    description: "Incomplete checkout automatically closed at midnight.",
+  },
 };
 
 export const sessionStatusConfig: Record<
@@ -135,6 +140,10 @@ export const sessionStatusConfig: Record<
   COMPLETED: {
     label: "Completed",
     variant: "neutral",
+  },
+  INCOMPLETE_CHECKOUT: {
+    label: "Incomplete Checkout",
+    variant: "destructive",
   },
 };
 

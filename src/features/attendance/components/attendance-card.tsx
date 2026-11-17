@@ -1,9 +1,10 @@
 import { ArrowRight, Calendar, Clock } from "lucide-react";
 import Link from "next/link";
 
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AttendanceCorrectionDialog } from "@/features/attendance/components/attendance-correction-dialog";
+import { AttendanceCorrectionRequestDialog } from "@/features/attendance/components/attendance-correction-request-dialog";
 import { AttendanceStatusBadge } from "@/features/attendance/components/attendance-status-badge";
 import type { AttendanceResponse } from "@/features/attendance/types/attendance-types";
 import {
@@ -23,6 +24,9 @@ export function AttendanceCard({
   const firstIn = record.sessions[0]?.checkInAt;
   const completedSessions = record.sessions.filter((s) => s.checkOutAt);
   const lastOut = completedSessions[completedSessions.length - 1]?.checkOutAt;
+  const isIncomplete =
+    record.sessions.some((s) => s.status === "INCOMPLETE_CHECKOUT") ||
+    record.attendanceStatus === "HALF_DAY";
 
   return (
     <Card className="overflow-hidden">
@@ -60,23 +64,33 @@ export function AttendanceCard({
             <span className="text-[10px] uppercase text-muted-foreground block">
               Last Out
             </span>
-            <span className="font-medium text-foreground">
-              {formatAttendanceTime(lastOut)}
+            <span
+              className={cn(
+                "font-medium",
+                isIncomplete ? "text-destructive font-semibold" : "text-foreground"
+              )}
+            >
+              {isIncomplete ? "Incomplete Checkout" : formatAttendanceTime(lastOut)}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between text-xs pt-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs pt-1">
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Clock aria-hidden="true" className="size-3.5 text-primary" />
-            <span>Worked: <strong className="text-foreground">{formatDurationMinutes(record.totalWorkedMinutes)}</strong></span>
-            {record.lateByMinutes > 0 && (
+            <span>
+              Worked:{" "}
+              <strong className="text-foreground">
+                {isIncomplete ? "00:00" : formatDurationMinutes(record.totalWorkedMinutes)}
+              </strong>
+            </span>
+            {!isIncomplete && record.lateByMinutes > 0 && (
               <span className="text-warning text-[11px]">({record.lateByMinutes}m late)</span>
             )}
           </div>
 
           <div className="flex items-center gap-1">
-            {isAdmin && (
+            {isAdmin ? (
               <>
                 <Link
                   className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "text-xs px-2")}
@@ -89,11 +103,20 @@ export function AttendanceCard({
                   <AttendanceCorrectionDialog attendance={record} />
                 )}
               </>
-            )}
+            ) : isIncomplete ? (
+              <AttendanceCorrectionRequestDialog
+                initialDate={record.workDate}
+                initialMissingPunch="CHECK_OUT"
+                trigger={
+                  <Button size="sm" variant="outline" className="text-xs">
+                    Request Checkout Correction
+                  </Button>
+                }
+              />
+            ) : null}
           </div>
         </div>
       </CardContent>
     </Card>
   );
 }
-

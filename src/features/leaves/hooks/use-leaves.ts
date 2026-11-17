@@ -14,12 +14,19 @@ import {
 import { leaveKeys } from "@/features/leaves/hooks/leave-query-keys";
 import {
   allocateEmployeeLeaveBalance,
+  allocateMonthlyLeave,
   applyLeave,
   approveLeave,
   cancelLeave,
   getEmployeeLeaveBalances,
   getLeaveDetail,
   getMyLeaveBalances,
+  getMyMonthlyLeaveBalances,
+  getEmployeeMonthlyLeaveBalances,
+  getEmployeeLeaveAllocationHistory,
+  getLeaveDashboard,
+  saveCompanyLeavePolicy,
+  saveEmployeeLeavePolicy,
   getMyLeaves,
   listAdminLeaves,
   rejectLeave,
@@ -30,6 +37,7 @@ import type {
   EmployeeLeaveParams,
   LeaveSearchParams,
   RejectLeaveRequest,
+  LeaveAllocationRequest,
 } from "@/features/leaves/types/leave-types";
 
 export function myLeavesQueryOptions(params?: EmployeeLeaveParams) {
@@ -53,6 +61,37 @@ export function myLeaveBalancesQueryOptions(year?: number) {
 
 export function useMyLeaveBalances(year?: number) {
   return useQuery(myLeaveBalancesQueryOptions(year));
+}
+
+export function useMyMonthlyLeaveBalances(month: string) {
+  return useQuery({ queryKey: leaveKeys.monthlyBalance(month), queryFn: () => getMyMonthlyLeaveBalances(month), enabled: Boolean(month) });
+}
+
+export function useEmployeeMonthlyLeaveBalances(employeeId: string, month: string) {
+  return useQuery({ queryKey: leaveKeys.allocationBalance(employeeId, month), queryFn: () => getEmployeeMonthlyLeaveBalances(employeeId, month), enabled: Boolean(employeeId && month) });
+}
+
+export function useEmployeeLeaveAllocationHistory(employeeId: string, month: string) {
+  return useQuery({ queryKey: leaveKeys.allocationHistory(employeeId, month), queryFn: () => getEmployeeLeaveAllocationHistory(employeeId, month), enabled: Boolean(employeeId && month) });
+}
+
+export function useLeaveDashboard(month: string) {
+  return useQuery({ queryKey: leaveKeys.dashboard(month), queryFn: () => getLeaveDashboard(month), enabled: Boolean(month) });
+}
+
+export function useAllocateMonthlyLeave() {
+  const queryClient = useQueryClient();
+  return useMutation({ mutationFn: ({ employeeId, request }: { employeeId: string; request: LeaveAllocationRequest }) => allocateMonthlyLeave(employeeId, request), onSuccess: (data) => {
+    void queryClient.invalidateQueries({ queryKey: leaveKeys.allocationBalance(data.employeeId, data.period) });
+    void queryClient.invalidateQueries({ queryKey: leaveKeys.allocationHistory(data.employeeId, data.period) });
+    void queryClient.invalidateQueries({ queryKey: leaveKeys.dashboard(data.period) });
+    void queryClient.invalidateQueries({ queryKey: leaveKeys.monthlyBalance(data.period) });
+  }});
+}
+
+export function useSaveLeavePolicy() {
+  const queryClient = useQueryClient();
+  return useMutation({ mutationFn: ({ employeeId, request }: { employeeId?: string; request: import("@/features/leaves/types/leave-types").LeavePolicyRequest }) => employeeId ? saveEmployeeLeavePolicy(employeeId, request) : saveCompanyLeavePolicy(request), onSuccess: () => { void queryClient.invalidateQueries({ queryKey: leaveKeys.allocation() }); void queryClient.invalidateQueries({ queryKey: leaveKeys.monthly() }); } });
 }
 
 export function adminLeavesQueryOptions(params?: LeaveSearchParams) {

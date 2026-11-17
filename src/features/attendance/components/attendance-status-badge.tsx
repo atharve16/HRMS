@@ -12,6 +12,7 @@ const statusIcons: Record<AttendanceStatus, typeof CheckCircle2> = {
   ABSENT: XCircle,
   HOLIDAY: Calendar,
   ON_LEAVE: Coffee,
+  HALF_DAY: Clock,
 };
 
 export function AttendanceStatusBadge({
