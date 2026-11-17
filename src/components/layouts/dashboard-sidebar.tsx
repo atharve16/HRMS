@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -30,23 +30,29 @@ export function DashboardSidebar({
   onCollapsedChange: (collapsed: boolean) => void;
 }) {
   const pathname = usePathname();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [toggledItems, setToggledItems] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    const activeExpandableItems = navigation
-      .flatMap((section) => section.items)
-      .filter((item) => item.children?.some((child) => isRouteActive(pathname, child.href)))
-      .map((item) => item.href);
+  const activeExpandableItems = useMemo(
+    () =>
+      navigation
+        .flatMap((section) => section.items)
+        .filter((item) => item.children?.some((child) => isRouteActive(pathname, child.href)))
+        .map((item) => item.href),
+    [navigation, pathname]
+  );
 
-    if (activeExpandableItems.length > 0) {
-      setExpandedItems((current) => Array.from(new Set([...current, ...activeExpandableItems])));
+  function isItemExpanded(href: string) {
+    if (toggledItems[href] !== undefined) {
+      return toggledItems[href];
     }
-  }, [navigation, pathname]);
+    return activeExpandableItems.includes(href);
+  }
 
   function toggleItem(href: string) {
-    setExpandedItems((current) => current.includes(href)
-      ? current.filter((item) => item !== href)
-      : [...current, href]);
+    setToggledItems((current) => ({
+      ...current,
+      [href]: !isItemExpanded(href),
+    }));
   }
 
   return (
@@ -73,7 +79,7 @@ export function DashboardSidebar({
                 const active = isItemActive(pathname, item);
                 const Icon = item.icon;
                 const expandable = Boolean(item.children?.length);
-                const expanded = expandedItems.includes(item.href);
+                const expanded = isItemExpanded(item.href);
 
                 return (
                   <li key={item.href}>

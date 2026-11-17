@@ -80,6 +80,9 @@ export function EmployeeRecentAttendance({ dashboard }: EmployeeRecentAttendance
                   const firstIn = record.sessions?.[0]?.checkInAt;
                   const completedSessions = (record.sessions ?? []).filter((s) => s.checkOutAt);
                   const lastOut = completedSessions[completedSessions.length - 1]?.checkOutAt;
+                  const isIncomplete =
+                    (record.sessions ?? []).some((s) => s.status === "INCOMPLETE_CHECKOUT") ||
+                    record.attendanceStatus === "HALF_DAY";
 
                   return (
                     <TableRow key={record.id}>
@@ -90,10 +93,14 @@ export function EmployeeRecentAttendance({ dashboard }: EmployeeRecentAttendance
                         {formatTimeShort(firstIn)}
                       </TableCell>
                       <TableCell className="text-xs font-mono text-muted-foreground">
-                        {formatTimeShort(lastOut)}
+                        {isIncomplete ? (
+                          <span className="font-semibold text-destructive">Incomplete Checkout</span>
+                        ) : (
+                          formatTimeShort(lastOut)
+                        )}
                       </TableCell>
                       <TableCell className="text-xs font-medium">
-                        {formatHoursMinutes(record.totalWorkedMinutes)}
+                        {isIncomplete ? "00:00" : formatHoursMinutes(record.totalWorkedMinutes)}
                       </TableCell>
                       <TableCell className="text-right">
                         <AttendanceStatusBadge status={record.attendanceStatus} />

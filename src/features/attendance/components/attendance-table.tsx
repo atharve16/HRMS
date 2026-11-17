@@ -2,16 +2,10 @@ import { MapPin } from "lucide-react";
 import Link from "next/link";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AttendanceCorrectionRequestDialog } from "@/features/attendance/components/attendance-correction-request-dialog";
 import { AttendanceStatusBadge } from "@/features/attendance/components/attendance-status-badge";
+import { useMyAttendanceCorrections } from "@/features/attendance/hooks/use-attendance";
 import type { AttendanceResponse } from "@/features/attendance/types/attendance-types";
 import {
   formatAttendanceDate,
@@ -27,6 +21,7 @@ export function AttendanceTable({
   records: AttendanceResponse[];
   isAdmin?: boolean;
 }) {
+  const { data: myCorrections } = useMyAttendanceCorrections({ enabled: !isAdmin });
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden">
       <Table>
@@ -119,15 +114,48 @@ export function AttendanceTable({
                         </Link>
                       </>
                     ) : isIncomplete ? (
-                      <AttendanceCorrectionRequestDialog
-                        initialDate={record.workDate}
-                        initialMissingPunch="CHECK_OUT"
-                        trigger={
-                          <Button size="sm" variant="outline" className="text-xs">
-                            Request Checkout Correction
-                          </Button>
-                        }
-                      />
+                      (() => {
+                        const correctionRequest = myCorrections?.find(
+                          (c) => c.attendanceDate === record.workDate
+                        );
+                        return (
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-[11px] text-muted-foreground">
+                              Correction:{" "}
+                              <strong
+                                className={
+                                  correctionRequest?.status === "PENDING"
+                                    ? "text-warning"
+                                    : correctionRequest?.status === "REJECTED"
+                                    ? "text-destructive"
+                                    : correctionRequest?.status === "APPROVED"
+                                    ? "text-success"
+                                    : "text-muted-foreground"
+                                }
+                              >
+                                {correctionRequest?.status === "PENDING"
+                                  ? "Pending"
+                                  : correctionRequest?.status === "REJECTED"
+                                  ? "Rejected"
+                                  : correctionRequest?.status === "APPROVED"
+                                  ? "Approved"
+                                  : "Not Requested"}
+                              </strong>
+                            </span>
+                            {(!correctionRequest || correctionRequest.status === "REJECTED") && (
+                              <AttendanceCorrectionRequestDialog
+                                initialDate={record.workDate}
+                                initialMissingPunch="CHECK_OUT"
+                                trigger={
+                                  <Button size="sm" variant="outline" className="text-xs h-7">
+                                    Request Checkout Correction
+                                  </Button>
+                                }
+                              />
+                            )}
+                          </div>
+                        );
+                      })()
                     ) : (
                       <span className="text-xs text-muted-foreground">
                         {record.sessions.length} session{record.sessions.length === 1 ? "" : "s"}

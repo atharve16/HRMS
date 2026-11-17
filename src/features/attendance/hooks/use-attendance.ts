@@ -161,8 +161,12 @@ export function useCorrectAttendance(attendanceId: string) {
   });
 }
 
-export function useMyAttendanceCorrections() {
-  return useQuery({ queryKey: attendanceKeys.myCorrections(), queryFn: getMyAttendanceCorrections });
+export function useMyAttendanceCorrections(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: attendanceKeys.myCorrections(),
+    queryFn: getMyAttendanceCorrections,
+    enabled: options?.enabled ?? true,
+  });
 }
 
 export function useSubmitAttendanceCorrection() {

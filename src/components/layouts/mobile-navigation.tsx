@@ -3,7 +3,7 @@
 import { ChevronDown, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,22 +21,29 @@ import { DashboardBrand } from "./dashboard-brand";
 
 export function MobileNavigation({ navigation }: { navigation: NavigationSection[] }) {
   const pathname = usePathname();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [toggledItems, setToggledItems] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    const activeItems = navigation
-      .flatMap((section) => section.items)
-      .filter((item) => item.children?.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`)))
-      .map((item) => item.href);
-    if (activeItems.length > 0) {
-      setExpandedItems((current) => Array.from(new Set([...current, ...activeItems])));
+  const activeItems = useMemo(
+    () =>
+      navigation
+        .flatMap((section) => section.items)
+        .filter((item) => item.children?.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`)))
+        .map((item) => item.href),
+    [navigation, pathname]
+  );
+
+  function isItemExpanded(href: string) {
+    if (toggledItems[href] !== undefined) {
+      return toggledItems[href];
     }
-  }, [navigation, pathname]);
+    return activeItems.includes(href);
+  }
 
   function toggleItem(item: NavigationItem) {
-    setExpandedItems((current) => current.includes(item.href)
-      ? current.filter((href) => href !== item.href)
-      : [...current, item.href]);
+    setToggledItems((current) => ({
+      ...current,
+      [item.href]: !isItemExpanded(item.href),
+    }));
   }
 
   return (
@@ -71,7 +78,7 @@ export function MobileNavigation({ navigation }: { navigation: NavigationSection
                       {item.children?.length ? (
                         <>
                           <button
-                            aria-expanded={expandedItems.includes(item.href)}
+                            aria-expanded={isItemExpanded(item.href)}
                             className={cn(
                               "flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
                               active && "bg-primary-soft text-primary",
@@ -83,10 +90,10 @@ export function MobileNavigation({ navigation }: { navigation: NavigationSection
                             <span className="flex-1">{item.label}</span>
                             <ChevronDown
                               aria-hidden="true"
-                              className={cn("size-4 transition-transform", expandedItems.includes(item.href) && "rotate-180")}
+                              className={cn("size-4 transition-transform", isItemExpanded(item.href) && "rotate-180")}
                             />
                           </button>
-                          {expandedItems.includes(item.href) && (
+                          {isItemExpanded(item.href) && (
                             <ul className="ml-4 mt-1 space-y-1 border-l border-border pl-3">
                               {item.children.map((child) => {
                                 const ChildIcon = child.icon;

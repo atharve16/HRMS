@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AttendanceCorrectionDialog } from "@/features/attendance/components/attendance-correction-dialog";
 import { AttendanceCorrectionRequestDialog } from "@/features/attendance/components/attendance-correction-request-dialog";
 import { AttendanceStatusBadge } from "@/features/attendance/components/attendance-status-badge";
+import { useMyAttendanceCorrections } from "@/features/attendance/hooks/use-attendance";
 import type { AttendanceResponse } from "@/features/attendance/types/attendance-types";
 import {
   formatAttendanceDate,
@@ -21,6 +22,7 @@ export function AttendanceCard({
   record: AttendanceResponse;
   isAdmin?: boolean;
 }) {
+  const { data: myCorrections } = useMyAttendanceCorrections({ enabled: !isAdmin });
   const firstIn = record.sessions[0]?.checkInAt;
   const completedSessions = record.sessions.filter((s) => s.checkOutAt);
   const lastOut = completedSessions[completedSessions.length - 1]?.checkOutAt;
@@ -104,15 +106,48 @@ export function AttendanceCard({
                 )}
               </>
             ) : isIncomplete ? (
-              <AttendanceCorrectionRequestDialog
-                initialDate={record.workDate}
-                initialMissingPunch="CHECK_OUT"
-                trigger={
-                  <Button size="sm" variant="outline" className="text-xs">
-                    Request Checkout Correction
-                  </Button>
-                }
-              />
+              (() => {
+                const correctionRequest = myCorrections?.find(
+                  (c) => c.attendanceDate === record.workDate
+                );
+                return (
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[10px] text-muted-foreground">
+                      Correction:{" "}
+                      <strong
+                        className={
+                          correctionRequest?.status === "PENDING"
+                            ? "text-warning"
+                            : correctionRequest?.status === "REJECTED"
+                            ? "text-destructive"
+                            : correctionRequest?.status === "APPROVED"
+                            ? "text-success"
+                            : "text-muted-foreground"
+                        }
+                      >
+                        {correctionRequest?.status === "PENDING"
+                          ? "Pending"
+                          : correctionRequest?.status === "REJECTED"
+                          ? "Rejected"
+                          : correctionRequest?.status === "APPROVED"
+                          ? "Approved"
+                          : "Not Requested"}
+                      </strong>
+                    </span>
+                    {(!correctionRequest || correctionRequest.status === "REJECTED") && (
+                      <AttendanceCorrectionRequestDialog
+                        initialDate={record.workDate}
+                        initialMissingPunch="CHECK_OUT"
+                        trigger={
+                          <Button size="sm" variant="outline" className="text-xs h-7">
+                            Request Checkout Correction
+                          </Button>
+                        }
+                      />
+                    )}
+                  </div>
+                );
+              })()
             ) : null}
           </div>
         </div>
