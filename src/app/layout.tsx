@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 
 import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/providers/auth-provider";
+import { CapacitorRuntime } from "@/components/capacitor/capacitor-runtime";
 
 import "./globals.css";
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
+        <CapacitorRuntime />
         <QueryProvider>
           <AuthProvider>{children}</AuthProvider>
         </QueryProvider>
