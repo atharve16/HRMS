@@ -20,7 +20,7 @@ export function SheetContent({
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-foreground/30 backdrop-blur-[2px] data-[state=closed]:animate-out data-[state=open]:animate-in" />
       <DialogPrimitive.Content
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[min(88vw,20rem)] border-r border-border bg-card shadow-overlay outline-none data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0 data-[state=closed]:transition-transform data-[state=open]:transition-transform",
+          "capacitor-sheet-safe-area fixed inset-y-0 left-0 z-50 w-[min(88vw,20rem)] border-r border-border bg-card shadow-overlay outline-none data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0 data-[state=closed]:transition-transform data-[state=open]:transition-transform",
           className,
         )}
         {...props}

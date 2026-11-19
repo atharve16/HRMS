@@ -34,7 +34,13 @@ export function EmployeeCheckInWidget({
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const actionInFlight = useRef(false);
 
-  const { captureLocation, isCapturing, location } = useGeolocation();
+  const {
+    captureLocation,
+    isCapturing,
+    location,
+    openSettings,
+    settingsRequired,
+  } = useGeolocation();
   const checkInMutation = useCheckIn();
   const checkOutMutation = useCheckOut();
 
@@ -200,6 +206,17 @@ export function EmployeeCheckInWidget({
             <div>
               <p className="font-semibold">Unable to record punch</p>
               <p className="mt-0.5">{actionError}</p>
+              {settingsRequired && (
+                <Button
+                  className="mt-2"
+                  onClick={() => void openSettings()}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  Open Android settings
+                </Button>
+              )}
             </div>
           </div>
         )}

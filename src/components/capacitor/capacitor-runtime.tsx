@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
+import { StatusBar, Style } from "@capacitor/status-bar";
 
 function isExternalHttpUrl(href: string) {
   try {
@@ -27,6 +28,23 @@ export function CapacitorRuntime() {
 
     let disposed = false;
     let removeBackButtonListener: (() => void) | undefined;
+
+    const configureSystemBars = async () => {
+      try {
+        // DEFAULT follows the Android light/dark appearance for icon contrast.
+        await SystemBars.setStyle({ style: SystemBarsStyle.Default });
+        await StatusBar.setStyle({ style: Style.Default });
+        // This is honored on Android 14 and older. Android 15/16 use the CSS
+        // safe-area insets because edge-to-edge is enforced by the platform.
+        await StatusBar.setOverlaysWebView({ overlay: false });
+      } catch (error) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[Capacitor] Unable to configure system bars", error);
+        }
+      }
+    };
+
+    void configureSystemBars();
 
     const setupBackButton = async () => {
       const listener = await App.addListener("backButton", ({ canGoBack }) => {

@@ -1,6 +1,8 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { App } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 import {
   createContext,
   useCallback,
@@ -109,6 +111,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       active = false;
     };
   }, [restorationAttempt]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let active = true;
+    let removeListener: (() => void) | undefined;
+
+    const subscribeToAppResume = async () => {
+      const listener = await App.addListener("appStateChange", ({ isActive }) => {
+        if (!isActive || !sessionStore.getAccessToken()) return;
+
+        // Android may suspend the proactive timer while the app is backgrounded.
+        // Refresh on resume using the existing HTTP-only cookie, without
+        // clearing the session for transient network/server failures.
+        refreshSession().catch((error: unknown) => {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn("[AuthProvider] Resume session refresh failed", error);
+          }
+        });
+      });
+
+      if (active) {
+        removeListener = () => void listener.remove();
+      } else {
+        void listener.remove();
+      }
+    };
+
+    void subscribeToAppResume();
+
+    return () => {
+      active = false;
+      removeListener?.();
+    };
+  }, []);
 
   // Proactive background refresh before access token expiration (15-min token policy)
   useEffect(() => {
