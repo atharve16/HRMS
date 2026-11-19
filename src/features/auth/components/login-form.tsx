@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAuthErrorMessage } from "@/features/auth/lib/auth-error-message";
+import { AuthLoading } from "@/features/auth/components/auth-loading";
+import { dashboardForRole, getSafeRedirectPath } from "@/features/auth/lib/auth-routes";
 import {
   requestOtpSchema,
   type RequestOtpFormValues,
@@ -24,7 +26,7 @@ type ParsedRequestOtpValues = z.output<typeof requestOtpSchema>;
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { restorationError, retryRestoration } = useAuth();
+  const { restorationError, retryRestoration, status, session } = useAuth();
   const form = useForm<
     RequestOtpFormValues,
     unknown,
@@ -43,6 +45,18 @@ export function LoginForm() {
       router.push(`/verify-otp?${params.toString()}`);
     },
   });
+
+  useEffect(() => {
+    if (status !== "authenticated" || !session) return;
+    router.replace(
+      getSafeRedirectPath(searchParams.get("redirect"), session.user.role) ??
+        dashboardForRole(session.user.role),
+    );
+  }, [router, searchParams, session, status]);
+
+  if (status === "loading" || status === "authenticated") {
+    return <AuthLoading label="Restoring your session" />;
+  }
 
   const showRestorationError =
     restorationError &&
@@ -115,8 +129,26 @@ export function LoginForm() {
         </div>
 
         {mutation.isError ? (
-          <div className="rounded-lg border border-destructive/20 bg-destructive-soft p-3 text-sm text-destructive" role="alert">
-            {getAuthErrorMessage(mutation.error)}
+          <div className="space-y-3 rounded-lg border border-destructive/20 bg-destructive-soft p-3 text-sm text-destructive" role="alert">
+            <p>{getAuthErrorMessage(mutation.error)}</p>
+            {mutation.variables &&
+            (!isApiClientError(mutation.error) ||
+              mutation.error.isTimeout ||
+              !mutation.error.status ||
+              mutation.error.status >= 500) ? (
+              <button
+                className="font-semibold underline underline-offset-4"
+                onClick={() => {
+                  const params = new URLSearchParams({ email: mutation.variables.email });
+                  const redirect = searchParams.get("redirect");
+                  if (redirect) params.set("redirect", redirect);
+                  router.push(`/verify-otp?${params.toString()}`);
+                }}
+                type="button"
+              >
+                I received a code — enter it
+              </button>
+            ) : null}
           </div>
         ) : null}
 
