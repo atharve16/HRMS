@@ -6,6 +6,7 @@ import type { DashboardIdentity, NavigationSection } from "@/types/navigation";
 
 import { DashboardHeader } from "./dashboard-header";
 import { DashboardSidebar } from "./dashboard-sidebar";
+import { MobileBottomNavigation } from "./mobile-bottom-navigation";
 
 type DashboardShellProps = {
   children: ReactNode;
@@ -25,8 +26,11 @@ export function DashboardShell({ children, navigation, identity }: DashboardShel
       />
       <div className="min-w-0 flex-1">
         <DashboardHeader identity={identity} navigation={navigation} />
-        <main>{children}</main>
+        <main className="pb-[calc(4.25rem+env(safe-area-inset-bottom))] lg:pb-0">
+          {children}
+        </main>
       </div>
+      <MobileBottomNavigation navigation={navigation} />
     </div>
   );
 }
