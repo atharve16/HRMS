@@ -16,7 +16,7 @@ public class MainActivity extends BridgeActivity {
     }
 
     @Override
-    protected void onStop() {
+    public void onStop() {
         // Flush the WebView cookie jar before Android may terminate the
         // activity so the next launch can restore the session.
         CookieManager.getInstance().flush();
