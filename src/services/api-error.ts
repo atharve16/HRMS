@@ -7,6 +7,7 @@ export class ApiClientError extends Error {
   readonly code: string | undefined;
   readonly details: Record<string, string>;
   readonly isTimeout: boolean;
+  readonly requestId: string | undefined;
 
   constructor(
     message: string,
@@ -15,6 +16,7 @@ export class ApiClientError extends Error {
       code?: string;
       details?: Record<string, string>;
       isTimeout?: boolean;
+      requestId?: string;
     } = {},
   ) {
     super(message);
@@ -23,6 +25,7 @@ export class ApiClientError extends Error {
     this.code = options.code;
     this.details = options.details ?? {};
     this.isTimeout = options.isTimeout ?? false;
+    this.requestId = options.requestId;
   }
 }
 
@@ -53,12 +56,21 @@ export function toApiClientError(error: AxiosError<unknown>) {
       : status
         ? `Request failed with status ${status}.`
         : "Unable to reach the server.");
+  const responseHeaders = error.response?.headers;
+  const rawRequestId = responseHeaders?.["x-request-id"];
+  const requestId =
+    typeof rawRequestId === "string"
+      ? rawRequestId
+      : responseHeaders && typeof responseHeaders.get === "function"
+        ? responseHeaders.get("x-request-id")
+        : undefined;
 
   return new ApiClientError(message, {
     status,
     code: envelope?.data.code ?? error.code,
     details: envelope?.data.details,
     isTimeout,
+    requestId: typeof requestId === "string" ? requestId : undefined,
   });
 }
 

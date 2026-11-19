@@ -55,4 +55,21 @@ describe("centralized API error mapping", () => {
   it("keeps manually created errors compatible with the mapper", () => {
     expect(new ApiClientError("message", { isTimeout: true }).isTimeout).toBe(true);
   });
+
+  it("captures the backend request reference from response headers", () => {
+    const error = new AxiosError("failed", "ERR_BAD_RESPONSE", undefined, undefined, {
+      status: 500,
+      statusText: "Server Error",
+      config: {} as never,
+      headers: { "x-request-id": "request-123" },
+      data: {
+        success: false,
+        message: "An unexpected error occurred",
+        data: { code: "INTERNAL_ERROR", path: "/api/v1/attendance/check-in", details: {} },
+        timestamp: "2026-11-18T00:00:00Z",
+      },
+    });
+
+    expect(toApiClientError(error).requestId).toBe("request-123");
+  });
 });

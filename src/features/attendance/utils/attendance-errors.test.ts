@@ -39,5 +39,27 @@ describe("attendance error utilities", () => {
     });
     expect(getAttendanceErrorMessage(error)).toBe("An attendance session is already active");
   });
+
+  it("surfaces safe GPS field validation details instead of the generic envelope message", () => {
+    const error = new ApiClientError("Request validation failed", {
+      status: 400,
+      code: "VALIDATION_ERROR",
+      details: { accuracyMeters: "GPS accuracy is required" },
+    });
+
+    expect(getAttendanceErrorMessage(error)).toBe(
+      "GPS accuracy: GPS accuracy is required",
+    );
+  });
+
+  it("adds the request reference to unexpected server failures", () => {
+    const error = new ApiClientError("An unexpected error occurred", {
+      status: 500,
+      code: "INTERNAL_ERROR",
+      requestId: "request-123",
+    });
+
+    expect(getAttendanceErrorMessage(error)).toContain("Reference: request-123");
+  });
 });
 

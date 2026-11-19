@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, LoaderCircle, Plus } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import {
@@ -54,8 +54,18 @@ export function AttendanceCorrectionRequestDialog({
 
   const missing = useWatch({ control: form.control, name: "missingPunch" });
 
+  const prevInitialDateRef = useRef(initialDate);
+  const prevInitialPunchRef = useRef(initialMissingPunch);
+
+  // Re-initialize only when a new correction record is selected while already open
   useEffect(() => {
-    if (open) {
+    if (
+      open &&
+      (prevInitialDateRef.current !== initialDate ||
+        prevInitialPunchRef.current !== initialMissingPunch)
+    ) {
+      prevInitialDateRef.current = initialDate;
+      prevInitialPunchRef.current = initialMissingPunch;
       form.reset({
         attendanceDate: initialDate || new Date().toISOString().slice(0, 10),
         missingPunch: initialMissingPunch,
@@ -63,9 +73,24 @@ export function AttendanceCorrectionRequestDialog({
         requestedCheckOutTime: "",
         reason: "",
       });
-      mutation.reset();
     }
-  }, [open, initialDate, initialMissingPunch, form, mutation]);
+  }, [open, initialDate, initialMissingPunch, form]);
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) {
+      mutation.reset();
+      prevInitialDateRef.current = initialDate;
+      prevInitialPunchRef.current = initialMissingPunch;
+      form.reset({
+        attendanceDate: initialDate || new Date().toISOString().slice(0, 10),
+        missingPunch: initialMissingPunch,
+        requestedCheckInTime: "",
+        requestedCheckOutTime: "",
+        reason: "",
+      });
+    }
+  };
 
   async function submit(values: AttendanceCorrectionRequestFormValues) {
     try {
@@ -85,15 +110,7 @@ export function AttendanceCorrectionRequestDialog({
   }
 
   return (
-    <AlertDialog
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (next) {
-          mutation.reset();
-        }
-      }}
-    >
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
         {trigger ? (
           trigger

@@ -82,4 +82,22 @@ describe("captureBrowserLocation utility", () => {
       /Geolocation is not supported/i,
     );
   });
+
+  it("rejects a location whose accuracy is not a valid API value", async () => {
+    const mockGeolocation = {
+      getCurrentPosition: vi.fn().mockImplementation((success) => {
+        success({
+          coords: {
+            latitude: 12.9716,
+            longitude: 77.5946,
+            accuracy: Number.NaN,
+          },
+        });
+      }),
+    } as unknown as Geolocation;
+
+    await expect(captureBrowserLocation(mockGeolocation)).rejects.toThrow(
+      /valid GPS accuracy reading/i,
+    );
+  });
 });
