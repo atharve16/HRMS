@@ -3,7 +3,7 @@ import { sessionStore } from "@/features/auth/services/session-store";
 import type { ApiResponse } from "@/services/api-contract";
 import { isApiClientError } from "@/services/api-error";
 
-type RefreshRequest = () => Promise<AuthenticationResponse>;
+type RefreshRequest = (timeoutMs?: number) => Promise<AuthenticationResponse>;
 
 export function createRefreshCoordinator(
   refreshRequest: RefreshRequest,
@@ -13,7 +13,7 @@ export function createRefreshCoordinator(
   let lastSuccessTime = 0;
   let lastSuccessResult: AuthenticationResponse | null = null;
 
-  return function refresh() {
+  return function refresh(timeoutMs?: number) {
     const activeToken = sessionStore.getAccessToken();
     if (
       lastSuccessResult &&
@@ -29,7 +29,7 @@ export function createRefreshCoordinator(
       console.log("[Auth] Starting coordinated refresh request");
     }
 
-    inFlight = refreshRequest()
+    inFlight = refreshRequest(timeoutMs)
       .then((result) => {
         if (process.env.NODE_ENV !== "production") {
           console.log("[Auth] Coordinated refresh request succeeded");
@@ -54,30 +54,29 @@ export function createRefreshCoordinator(
   };
 }
 
-async function requestRefresh() {
+async function requestRefresh(timeoutMs?: number) {
   try {
     // Load the shared client lazily to avoid a module cycle while the auth
     // interceptor registers its refresh callback.
     const { apiClient } = await import("@/services/api-client");
     const response = await apiClient.post<ApiResponse<AuthenticationResponse>>(
       "/auth/refresh",
+      undefined,
+      timeoutMs ? { timeout: timeoutMs } : undefined,
     );
     sessionStore.establish(response.data.data);
     return response.data.data;
   } catch (error) {
-    // Only clear session store if the refresh token is genuinely invalid or expired (401)
+    // Only an actual 401 invalidates the refresh cookie. Transient failures
+    // must preserve the user's existing server-side session.
     const isUnauthorized = isApiClientError(error) && error.status === 401;
     if (isUnauthorized) {
       if (process.env.NODE_ENV !== "production") {
         console.log("[Auth] Refresh token is invalid or expired (401), clearing session");
       }
       sessionStore.clear();
-    } else {
-      if (process.env.NODE_ENV !== "production") {
-        console.log(
-          "[Auth] Refresh failed due to network or server error, preserving existing session state",
-        );
-      }
+    } else if (process.env.NODE_ENV !== "production") {
+      console.log("[Auth] Refresh failed transiently; preserving session state");
     }
     throw error;
   }
