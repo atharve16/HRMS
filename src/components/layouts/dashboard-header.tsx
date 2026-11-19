@@ -18,7 +18,6 @@ import { NotificationHeaderDropdown } from "@/features/notifications/components/
 import { useAuth } from "@/providers/auth-provider";
 
 import { InstallAppButton } from "../pwa/install-app";
-import { MobileNavigation } from "./mobile-navigation";
 
 function getPageTitle(pathname: string, navigation: NavigationSection[]) {
   const items = navigation.flatMap((section) => section.items.flatMap((item) => [
@@ -59,7 +58,6 @@ export function DashboardHeader({ navigation, identity }: DashboardHeaderProps) 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center border-b border-border bg-card/95 px-4 backdrop-blur sm:px-6 lg:h-20 lg:px-8">
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <MobileNavigation navigation={navigation} />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-foreground sm:text-base">{pageTitle}</p>
           <p className="hidden text-xs text-muted-foreground sm:block">People operations workspace</p>
