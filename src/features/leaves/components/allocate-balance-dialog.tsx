@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircle, Coins, LoaderCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import {
@@ -56,15 +56,31 @@ export function AllocateBalanceDialog({
     },
   });
 
+  const prevBalanceIdRef = useRef(existingBalance?.id);
+
   useEffect(() => {
-    if (existingBalance) {
+    if (open && existingBalance && prevBalanceIdRef.current !== existingBalance.id) {
+      prevBalanceIdRef.current = existingBalance.id;
       reset({
         leaveType: existingBalance.leaveType as "CL" | "SL" | "EL" | "CO",
         year: existingBalance.year,
         allocatedDays: existingBalance.allocatedDays,
       });
     }
-  }, [existingBalance, reset]);
+  }, [open, existingBalance, reset]);
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) {
+      allocateMutation.reset();
+      prevBalanceIdRef.current = existingBalance?.id;
+      reset({
+        leaveType: existingBalance ? (existingBalance.leaveType as "CL" | "SL" | "EL" | "CO") : "CL",
+        year: existingBalance ? existingBalance.year : year,
+        allocatedDays: existingBalance ? existingBalance.allocatedDays : 12,
+      });
+    }
+  };
 
   const committedDays = existingBalance
     ? existingBalance.usedDays + existingBalance.pendingDays
@@ -84,7 +100,7 @@ export function AllocateBalanceDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
         {trigger || (
           <Button type="button" variant="outline" size="sm">

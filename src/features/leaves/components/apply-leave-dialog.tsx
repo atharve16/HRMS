@@ -76,8 +76,21 @@ export function ApplyLeaveDialog({
     }
   };
 
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (next) {
+      applyMutation.reset();
+      reset({
+        leaveType: "CL",
+        startDate: today,
+        endDate: today,
+        reason: "",
+      });
+    }
+  };
+
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
         {trigger || (
           <Button type="button">

@@ -10,7 +10,7 @@ import {
   Navigation,
   ShieldCheck,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +32,7 @@ export function EmployeeCheckInWidget({
 }) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  const actionInFlight = useRef(false);
 
   const { captureLocation, isCapturing, location } = useGeolocation();
   const checkInMutation = useCheckIn();
@@ -42,6 +43,8 @@ export function EmployeeCheckInWidget({
   const hasActiveSession = status.activeSession;
 
   async function handleCheckIn() {
+    if (actionInFlight.current) return;
+    actionInFlight.current = true;
     setActionError(null);
     setSuccessNotice(null);
 
@@ -60,10 +63,14 @@ export function EmployeeCheckInWidget({
       onActionSuccess?.();
     } catch (err) {
       setActionError(getAttendanceErrorMessage(err));
+    } finally {
+      actionInFlight.current = false;
     }
   }
 
   async function handleCheckOut() {
+    if (actionInFlight.current) return;
+    actionInFlight.current = true;
     setActionError(null);
     setSuccessNotice(null);
 
@@ -82,6 +89,8 @@ export function EmployeeCheckInWidget({
       onActionSuccess?.();
     } catch (err) {
       setActionError(getAttendanceErrorMessage(err));
+    } finally {
+      actionInFlight.current = false;
     }
   }
 

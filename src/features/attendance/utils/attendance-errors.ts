@@ -1,5 +1,18 @@
 import { isApiClientError } from "@/services/api-error";
 
+const safeValidationFields: Record<string, string> = {
+  latitude: "Latitude",
+  longitude: "Longitude",
+  accuracyMeters: "GPS accuracy",
+};
+
+function validationDetailsMessage(details: Record<string, string>): string | null {
+  const messages = Object.entries(details)
+    .filter(([field, message]) => field in safeValidationFields && Boolean(message))
+    .map(([field, message]) => `${safeValidationFields[field]}: ${message}`);
+  return messages.length > 0 ? messages.join(" ") : null;
+}
+
 export function getAttendanceErrorMessage(error: unknown): string {
   if (!isApiClientError(error)) {
     if (error instanceof Error && error.message) {
@@ -32,19 +45,28 @@ export function getAttendanceErrorMessage(error: unknown): string {
         "The proposed correction creates invalid session timestamps."
       );
     case "CONFLICT":
-      return error.message;
+      return error.message || "This attendance action conflicts with the current session state.";
     case "RESOURCE_NOT_FOUND":
       return error.message || "Attendance record was not found.";
     case "VALIDATION_ERROR":
       return (
+        validationDetailsMessage(error.details) ||
         error.message ||
         "Some attendance information is invalid. Please review and try again."
       );
+    case "EMPLOYEE_INACTIVE":
+      return "Your employee account is inactive or unavailable. Contact HR for assistance.";
+    case "UNAUTHORIZED":
+      return "Your session has expired. Sign in again and retry the attendance action.";
+    case "FORBIDDEN":
+      return "You are not authorized to perform this attendance action.";
     default:
       if (error.status >= 500) {
-        return "The HRMS attendance service is currently unavailable. Please try again shortly.";
+        return error.requestId
+          ? `The HRMS attendance service is currently unavailable. Please try again shortly. Reference: ${error.requestId}`
+          : "The HRMS attendance service is currently unavailable. Please try again shortly.";
       }
-      return error.message;
+      return error.message || "The attendance action could not be completed.";
   }
 }
 

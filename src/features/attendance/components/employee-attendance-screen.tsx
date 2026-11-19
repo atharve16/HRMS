@@ -36,10 +36,11 @@ import {
   formatAttendanceDate,
   formatDurationMinutes,
 } from "@/features/attendance/utils/attendance-display";
+import { getCompanyTodayDate } from "@/features/dashboard/utils/dashboard-time";
 import { getAttendanceErrorMessage } from "@/features/attendance/utils/attendance-errors";
 
 export function EmployeeAttendanceScreen() {
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getCompanyTodayDate();
 
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");

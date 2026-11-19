@@ -36,6 +36,31 @@ export function captureBrowserLocation(
           longitude: Number(position.coords.longitude.toFixed(7)),
           accuracyMeters: Math.round(position.coords.accuracy * 10) / 10,
         };
+
+        // Some browsers/WebViews can return a location with a non-finite
+        // accuracy value. JSON serializes NaN/Infinity as null, which then
+        // fails the server DTO validation even though coordinates render.
+        // Reject malformed telemetry locally; the server remains authoritative
+        // for the office-specific accuracy and geofence rules.
+        if (
+          !Number.isFinite(gps.latitude) ||
+          !Number.isFinite(gps.longitude) ||
+          !Number.isFinite(gps.accuracyMeters) ||
+          gps.latitude < -90 ||
+          gps.latitude > 90 ||
+          gps.longitude < -180 ||
+          gps.longitude > 180 ||
+          gps.accuracyMeters <= 0 ||
+          gps.accuracyMeters > 1000
+        ) {
+          reject(
+            new Error(
+              "Your device did not return a valid GPS accuracy reading. Please enable precise location and try again.",
+            ),
+          );
+          return;
+        }
+
         resolve(gps);
       },
       (error) => {

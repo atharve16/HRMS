@@ -14,6 +14,7 @@ import {
 import { logout as requestLogout } from "@/features/auth/services/auth-service";
 import { refreshSession } from "@/features/auth/services/refresh-session";
 import { sessionStore } from "@/features/auth/services/session-store";
+import { isApiClientError } from "@/services/api-error";
 import type {
   AuthenticationResponse,
   AuthSession,
@@ -67,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    let autoRetryTimer: NodeJS.Timeout | undefined;
 
     // If session is already present in memory on first mount, skip restoring
     if (sessionStore.getAccessToken() && restorationAttempt === 0) {
@@ -89,24 +91,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             );
           }
           setRestorationError(null);
+          setRestoring(false);
         }
       })
       .catch((error: unknown) => {
-        if (active) {
+        if (!active) return;
+        const isAuth401 = isApiClientError(error) && error.status === 401;
+        // If it's a transient network/server failure during initial boot and first attempt,
+        // wait 2.5s and retry once automatically to handle Render cold starts smoothly.
+        if (!isAuth401 && restorationAttempt === 0) {
           if (process.env.NODE_ENV !== "production") {
-            console.log("[AuthProvider] Session restoration failed");
+            console.log("[AuthProvider] Transient failure on initial restore; auto-retrying in 2.5s...");
           }
-          setRestorationError(error);
+          autoRetryTimer = setTimeout(() => {
+            if (active) {
+              setRestorationAttempt((prev) => prev + 1);
+            }
+          }, 2500);
+          return;
         }
-      })
-      .finally(() => {
-        if (active) {
-          setRestoring(false);
+
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[AuthProvider] Session restoration failed", error);
         }
+        setRestorationError(error);
+        setRestoring(false);
       });
 
     return () => {
       active = false;
+      if (autoRetryTimer) clearTimeout(autoRetryTimer);
     };
   }, [restorationAttempt]);
 
@@ -114,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!session?.expiresAt) return;
 
+    let retryTimer: NodeJS.Timeout | undefined;
     const timeUntilExpiry = session.expiresAt - Date.now();
     const refreshDelay =
       timeUntilExpiry > 60_000
@@ -137,10 +152,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             error,
           );
         }
+        // If not a confirmed 401, retry proactive refresh in 30 seconds
+        if (!(isApiClientError(error) && error.status === 401)) {
+          retryTimer = setTimeout(() => {
+            refreshSession().catch(() => {});
+          }, 30_000);
+        }
       });
     }, refreshDelay);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (retryTimer) clearTimeout(retryTimer);
+    };
   }, [session?.expiresAt]);
 
   const establishSession = useCallback(
