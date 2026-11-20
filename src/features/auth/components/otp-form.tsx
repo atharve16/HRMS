@@ -118,9 +118,11 @@ export function OtpForm() {
       <form
         className="mt-8 space-y-5"
         noValidate
-        onSubmit={form.handleSubmit(({ otp }) =>
-          verifyMutation.mutate({ email, otp: otp.trim() }),
-        )}
+        onSubmit={form.handleSubmit(({ otp }) => {
+          if (!verifyMutation.isPending) {
+            verifyMutation.mutate({ email, otp: otp.trim() });
+          }
+        })}
       >
         <div className="space-y-2">
           <Label htmlFor="otp">Six-digit code</Label>
@@ -179,7 +181,11 @@ export function OtpForm() {
         ) : null}
         <Button
           disabled={cooldown > 0 || resendMutation.isPending}
-          onClick={() => resendMutation.mutate({ email })}
+          onClick={() => {
+            if (cooldown <= 0 && !resendMutation.isPending) {
+              resendMutation.mutate({ email });
+            }
+          }}
           type="button"
           variant="ghost"
         >

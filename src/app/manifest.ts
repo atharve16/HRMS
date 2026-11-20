@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "HRMS",
     short_name: "HRMS",
-    description: "PeopleFlow human resource management system.",
+    description: "HRMS human resource management system.",
     start_url: "/",
     scope: "/",
     display: "standalone",

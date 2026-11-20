@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createRefreshCoordinator } from "@/features/auth/services/refresh-session";
+import {
+  createRefreshCoordinator,
+  restoreSessionWithDeadline,
+  StaleRefreshResponseError,
+} from "@/features/auth/services/refresh-session";
 import { sessionStore } from "@/features/auth/services/session-store";
 import type { AuthenticationResponse } from "@/features/auth/types/auth";
 
@@ -92,6 +96,83 @@ describe("session lifecycle", () => {
     await expect(refresh()).rejects.toThrow("expired");
     await expect(refresh()).resolves.toEqual(authenticationResponse);
     expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not let a late refresh response revive a logged-out session", async () => {
+    sessionStore.establish(adminResponse);
+    let resolveRefresh: ((value: AuthenticationResponse) => void) | undefined;
+    const refresh = createRefreshCoordinator(
+      () =>
+        new Promise<AuthenticationResponse>((resolve) => {
+          resolveRefresh = resolve;
+        }),
+    );
+
+    const pending = refresh();
+    sessionStore.clear();
+    resolveRefresh?.(authenticationResponse);
+
+    await expect(pending).rejects.toBeInstanceOf(StaleRefreshResponseError);
+    expect(sessionStore.getSnapshot()).toBeNull();
+  });
+
+  it("invalidates a refresh when a newer manual login wins the race", async () => {
+    sessionStore.establish(adminResponse);
+    let resolveRefresh: ((value: AuthenticationResponse) => void) | undefined;
+    const refresh = createRefreshCoordinator(
+      () =>
+        new Promise<AuthenticationResponse>((resolve) => {
+          resolveRefresh = resolve;
+        }),
+    );
+
+    const pending = refresh();
+    sessionStore.establish(adminResponse);
+    resolveRefresh?.(authenticationResponse);
+
+    await expect(pending).rejects.toBeInstanceOf(StaleRefreshResponseError);
+    expect(sessionStore.getAccessToken()).toBe("admin-access-token");
+  });
+
+  it("ends restoration at the deadline without clearing the refresh session", async () => {
+    vi.useFakeTimers();
+    let resolveRefresh: ((value: AuthenticationResponse) => void) | undefined;
+    const invalidate = vi.fn();
+    const pending = restoreSessionWithDeadline(
+      () =>
+        new Promise<AuthenticationResponse>((resolve) => {
+          resolveRefresh = resolve;
+        }),
+      15_000,
+      invalidate,
+    );
+
+    const assertion = expect(pending).rejects.toThrow("timed out");
+    await vi.advanceTimersByTimeAsync(15_000);
+    await assertion;
+    expect(invalidate).toHaveBeenCalledOnce();
+    resolveRefresh?.(authenticationResponse);
+  });
+
+  it("preserves the current session after a transient refresh failure", async () => {
+    sessionStore.establish(adminResponse);
+    const refresh = createRefreshCoordinator(
+      vi.fn().mockRejectedValue(new Error("temporary network failure")),
+    );
+
+    await expect(refresh()).rejects.toThrow("temporary network failure");
+    expect(sessionStore.getAccessToken()).toBe("admin-access-token");
+  });
+
+  it("ends the session when the refresh cookie is rejected", async () => {
+    sessionStore.establish(adminResponse);
+    const refresh = createRefreshCoordinator(async () => {
+      sessionStore.clear();
+      throw new Error("invalid refresh cookie");
+    });
+
+    await expect(refresh()).rejects.toThrow("invalid refresh cookie");
+    expect(sessionStore.getSnapshot()).toBeNull();
   });
 
   it("reuses recently refreshed session within the cooldown window", async () => {

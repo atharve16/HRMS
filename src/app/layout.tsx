@@ -15,12 +15,15 @@ const geist = Geist({
 export const metadata: Metadata = {
   applicationName: "HRMS",
   title: {
-    default: "PeopleFlow HRMS",
-    template: "%s | PeopleFlow HRMS",
+    default: "HRMS",
+    template: "%s | HRMS",
   },
-  description: "A responsive frontend foundation for human resource management.",
+  description: "HRMS human resource management system.",
   icons: {
-    icon: "/icons/hrms-192.png",
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/icons/hrms-192.png", type: "image/png", sizes: "192x192" },
+    ],
     apple: "/icons/hrms-apple-touch-icon.png",
   },
   appleWebApp: {

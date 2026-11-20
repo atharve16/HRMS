@@ -3,17 +3,23 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, LoaderCircle, Mail } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useState } from "react";
 import type { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAuthErrorMessage } from "@/features/auth/lib/auth-error-message";
+<<<<<<< HEAD
 import { AuthLoading } from "@/features/auth/components/auth-loading";
 import { dashboardForRole, getSafeRedirectPath } from "@/features/auth/lib/auth-routes";
+=======
+import { getOtpVerificationPath } from "@/features/auth/lib/auth-routes";
+>>>>>>> 199b426 (added logo and header)
 import {
   requestOtpSchema,
   type RequestOtpFormValues,
@@ -27,7 +33,12 @@ type ParsedRequestOtpValues = z.output<typeof requestOtpSchema>;
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+<<<<<<< HEAD
   const { restorationError, retryRestoration, status, session } = useAuth();
+=======
+  const { restorationError, retryRestoration } = useAuth();
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
+>>>>>>> 199b426 (added logo and header)
   const form = useForm<
     RequestOtpFormValues,
     unknown,
@@ -72,7 +83,7 @@ export function LoginForm() {
         Secure employee access
       </p>
       <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground">
-        Sign in to PeopleFlow
+        Sign in to HRMS
       </h2>
       <p className="mt-3 text-sm leading-6 text-muted-foreground">
         Enter your registered work email. We&apos;ll send you a six-digit sign-in code.
@@ -95,7 +106,9 @@ export function LoginForm() {
         className="mt-8 space-y-5"
         noValidate
         onSubmit={form.handleSubmit((values) => {
-          if (!mutation.isPending) mutation.mutate(values);
+          if (mutation.isPending) return;
+          setSubmittedEmail(values.email);
+          mutation.mutate(values);
         })}
       >
         <div className="space-y-2">
@@ -132,6 +145,7 @@ export function LoginForm() {
         {mutation.isError ? (
           <div className="space-y-3 rounded-lg border border-destructive/20 bg-destructive-soft p-3 text-sm text-destructive" role="alert">
             <p>{getAuthErrorMessage(mutation.error)}</p>
+<<<<<<< HEAD
             {mutation.variables &&
             (!isApiClientError(mutation.error) ||
               mutation.error.isTimeout ||
@@ -149,6 +163,15 @@ export function LoginForm() {
               >
                 I received a code — enter it
               </button>
+=======
+            {submittedEmail ? (
+              <Link
+                className="inline-flex font-semibold underline-offset-4 hover:underline"
+                href={getOtpVerificationPath(submittedEmail, searchParams.get("redirect"))}
+              >
+                I already received the code
+              </Link>
+>>>>>>> 199b426 (added logo and header)
             ) : null}
           </div>
         ) : null}

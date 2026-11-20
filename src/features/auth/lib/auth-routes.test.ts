@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   dashboardForRole,
+  getOtpVerificationPath,
   getRouteDecision,
   getSafeRedirectPath,
 } from "@/features/auth/lib/auth-routes";
@@ -47,5 +48,11 @@ describe("role-aware routing", () => {
     expect(getSafeRedirectPath("https://evil.example/admin", "ADMIN")).toBeNull();
     expect(getSafeRedirectPath("//evil.example/admin", "ADMIN")).toBeNull();
     expect(getSafeRedirectPath("/\\evil.example/admin", "ADMIN")).toBeNull();
+  });
+
+  it("builds a safe OTP continuation path from the submitted email", () => {
+    expect(getOtpVerificationPath("person@example.com", "/employee/dashboard")).toBe(
+      "/verify-otp?email=person%40example.com&redirect=%2Femployee%2Fdashboard",
+    );
   });
 });

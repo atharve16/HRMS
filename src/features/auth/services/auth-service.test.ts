@@ -10,6 +10,7 @@ const api = vi.hoisted(() => ({
 vi.mock("@/services/api-client", () => ({ apiClient: api }));
 
 import {
+  AUTH_REQUEST_TIMEOUT_MS,
   getAuthenticatedUser,
   logout,
   requestOtp,
@@ -47,7 +48,23 @@ describe("authentication API service", () => {
     });
     expect(api.post).toHaveBeenCalledWith("/auth/request-otp", {
       email: "person@example.com",
+    }, { timeout: AUTH_REQUEST_TIMEOUT_MS });
+  });
+
+  it.each([
+    ["network", undefined],
+    ["timeout", undefined],
+    ["rate limit", 429],
+    ["server", 503],
+  ])("preserves %s OTP request failures without retrying", async (_label, status) => {
+    api.post.mockRejectedValueOnce(
+      new ApiClientError("request failed", { status: status ?? undefined }),
+    );
+
+    await expect(requestOtp({ email: "person@example.com" })).rejects.toMatchObject({
+      status: status ?? undefined,
     });
+    expect(api.post).toHaveBeenCalledTimes(1);
   });
 
   it("returns the authenticated user and access token after verification", async () => {
@@ -62,6 +79,10 @@ describe("authentication API service", () => {
     await expect(
       verifyOtp({ email: "admin@example.com", otp: "123456" }),
     ).resolves.toMatchObject({ accessToken: "signed-access", user });
+    expect(api.post).toHaveBeenCalledWith("/auth/verify-otp", {
+      email: "admin@example.com",
+      otp: "123456",
+    }, { timeout: AUTH_REQUEST_TIMEOUT_MS });
   });
 
   it("preserves invalid and expired OTP failures from the centralized client", async () => {

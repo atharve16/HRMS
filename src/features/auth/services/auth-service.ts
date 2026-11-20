@@ -9,10 +9,13 @@ import type {
 import type { ApiResponse } from "@/services/api-contract";
 import { apiClient } from "@/services/api-client";
 
+export const AUTH_REQUEST_TIMEOUT_MS = 15_000;
+
 export async function requestOtp(request: RequestOtpRequest) {
   const response = await apiClient.post<ApiResponse<OtpRequestResponse>>(
     "/auth/request-otp",
     request,
+    { timeout: AUTH_REQUEST_TIMEOUT_MS },
   );
   return response.data;
 }
@@ -21,6 +24,7 @@ export async function verifyOtp(request: VerifyOtpRequest) {
   const response = await apiClient.post<ApiResponse<AuthenticationResponse>>(
     "/auth/verify-otp",
     request,
+    { timeout: AUTH_REQUEST_TIMEOUT_MS },
   );
   return response.data.data;
 }

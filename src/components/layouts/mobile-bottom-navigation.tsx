@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { NavigationItem, NavigationSection } from "@/types/navigation";
 
+<<<<<<< HEAD
 function flattenNavigation(sections: NavigationSection[]) {
   return sections.flatMap((section) =>
     section.items.flatMap((item) => item.children?.length ? item.children : [item]),
@@ -47,6 +48,64 @@ export function MobileBottomNavigation({
           );
         })}
       </ul>
+=======
+function isRouteActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function flattenNavigationItems(navigation: NavigationSection[]) {
+  const seen = new Set<string>();
+  const items: NavigationItem[] = [];
+
+  for (const section of navigation) {
+    for (const item of section.items) {
+      // Expandable parents are represented by their destinations on mobile;
+      // this keeps all child routes available without duplicate parent links.
+      const candidates = item.children?.length ? item.children : [item];
+      for (const candidate of candidates) {
+        if (seen.has(candidate.href)) continue;
+        seen.add(candidate.href);
+        items.push(candidate);
+      }
+    }
+  }
+
+  return items;
+}
+
+export function MobileBottomNavigation({ navigation }: { navigation: NavigationSection[] }) {
+  const pathname = usePathname();
+  const items = flattenNavigationItems(navigation);
+
+  return (
+    <nav
+      aria-label="Mobile navigation"
+      className="mobile-bottom-navigation fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-overlay backdrop-blur lg:hidden"
+    >
+      <div className="flex min-w-max gap-1 overflow-x-auto px-2 pt-2">
+        {items.map((item) => {
+          const Icon = item.icon;
+          const active = isRouteActive(pathname, item.href);
+
+          return (
+            <Link
+              aria-current={active ? "page" : undefined}
+              aria-label={item.label}
+              className={cn(
+                "flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
+                active && "bg-primary-soft text-primary",
+              )}
+              href={item.href}
+              key={item.href}
+              title={item.label}
+            >
+              <Icon aria-hidden="true" className="size-5" />
+              <span className="sr-only">{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+>>>>>>> 199b426 (added logo and header)
     </nav>
   );
 }

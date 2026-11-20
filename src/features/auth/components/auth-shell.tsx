@@ -43,7 +43,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           </div>
           {children}
           <p className="mt-8 text-center text-xs leading-5 text-muted-foreground">
-            Access is limited to authorized PeopleFlow accounts. Contact your HR administrator if you need help.
+            Access is limited to authorized HRMS accounts. Contact your HR administrator if you need help.
           </p>
         </div>
       </section>

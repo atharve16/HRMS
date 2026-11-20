@@ -26,6 +26,12 @@ export function getSafeRedirectPath(value: string | null, role: UserRole) {
   }
 }
 
+export function getOtpVerificationPath(email: string, redirect: string | null = null) {
+  const params = new URLSearchParams({ email });
+  if (redirect) params.set("redirect", redirect);
+  return `/verify-otp?${params.toString()}`;
+}
+
 export type RouteDecision =
   | { allowed: true }
   | { allowed: false; redirectTo: string };

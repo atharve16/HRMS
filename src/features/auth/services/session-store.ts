@@ -6,6 +6,7 @@ import type {
 type SessionListener = (session: AuthSession | null) => void;
 
 let session: AuthSession | null = null;
+let revision = 0;
 const listeners = new Set<SessionListener>();
 
 function publish() {
@@ -21,7 +22,12 @@ export const sessionStore = {
     return session?.accessToken;
   },
 
+  getRevision() {
+    return revision;
+  },
+
   establish(response: AuthenticationResponse) {
+    revision += 1;
     session = {
       accessToken: response.accessToken,
       expiresAt: Date.now() + response.expiresInSeconds * 1_000,
@@ -32,8 +38,15 @@ export const sessionStore = {
   },
 
   clear() {
+    revision += 1;
     session = null;
     publish();
+  },
+
+  invalidatePendingRefreshes() {
+    // Invalidate in-flight responses without clearing the current session or
+    // touching the HTTP-only refresh cookie.
+    revision += 1;
   },
 
   subscribe(listener: SessionListener) {

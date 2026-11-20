@@ -14,7 +14,12 @@ import {
 } from "react";
 
 import { logout as requestLogout } from "@/features/auth/services/auth-service";
-import { refreshSession } from "@/features/auth/services/refresh-session";
+import {
+  refreshSession,
+  restoreSessionWithDeadline,
+  SESSION_RESTORATION_TIMEOUT_MS,
+  StaleRefreshResponseError,
+} from "@/features/auth/services/refresh-session";
 import { sessionStore } from "@/features/auth/services/session-store";
 import type {
   AuthenticationResponse,
@@ -81,9 +86,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
     }
 
+<<<<<<< HEAD
     // Bound cold-start restoration so the login screen appears within 15 seconds.
     // A timeout is transient and does not clear the HTTP-only refresh cookie.
     refreshSession(15_000)
+=======
+    restoreSessionWithDeadline(
+      refreshSession,
+      SESSION_RESTORATION_TIMEOUT_MS,
+      () => sessionStore.invalidatePendingRefreshes(),
+    )
+>>>>>>> 199b426 (added logo and header)
       .then((res) => {
         if (active) {
           if (process.env.NODE_ENV !== "production") {
@@ -100,7 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (process.env.NODE_ENV !== "production") {
             console.log("[AuthProvider] Session restoration failed");
           }
-          setRestorationError(error);
+          if (
+            error instanceof StaleRefreshResponseError &&
+            sessionStore.getSnapshot()
+          ) {
+            setRestorationError(null);
+          } else {
+            setRestorationError(error);
+          }
         }
       })
       .finally(() => {
