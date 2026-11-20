@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import type { NavigationItem, NavigationSection } from "@/types/navigation";
 
 import { DashboardBrand } from "./dashboard-brand";
+import { DESKTOP_SIDEBAR_VISIBILITY_CLASS } from "./navigation-model";
 
 function isRouteActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -58,7 +59,8 @@ export function DashboardSidebar({
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-svh shrink-0 border-r border-border bg-card transition-[width] duration-200 lg:flex lg:flex-col",
+        "sticky top-0 h-svh shrink-0 border-r border-border bg-card transition-[width] duration-200 lg:flex-col",
+        DESKTOP_SIDEBAR_VISIBILITY_CLASS,
         collapsed ? "w-[5.25rem]" : "w-[16.5rem]",
       )}
     >

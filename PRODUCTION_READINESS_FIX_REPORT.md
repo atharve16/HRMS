@@ -20,6 +20,9 @@ No commit or merge was created. `main` was not modified.
 - The existing mobile navigation was a hamburger sheet. It competed with the
   Android header/safe-area layout and did not provide the requested compact
   bottom navigation.
+- The branch also contained unresolved merge-conflict markers in the mobile
+  shell and authentication files, leaving competing implementations in the
+  tracked source.
 - The UI still used the old CSS `Blocks` mark and old generated icon assets in
   several web and Android locations.
 
@@ -74,6 +77,13 @@ Android device/WebView.
 
 ## Responsive navigation
 
+- Desktop audit found 15 ADMIN leaf destinations: dashboard, employees,
+  departments, attendance, three attendance reports, shifts, office locations,
+  work assignments, leaves, holidays, payroll, bonuses, and settings. It found
+  7 EMPLOYEE destinations: dashboard, attendance, leaves, holidays, salary,
+  notifications, and profile. No destination present in the desktop sidebar
+  configuration was intentionally omitted; the prior branch state was invalid
+  because the mobile files contained unresolved competing implementations.
 - The desktop sidebar remains available from the existing `lg` breakpoint and
   retains role-specific sections, expandable groups, icons, labels, and routes.
 - The mobile hamburger sheet is no longer rendered by the dashboard header.
@@ -81,8 +91,12 @@ Android device/WebView.
   Each item has an accessible label, tooltip/title, active-route state, and the
   same destination as the existing navigation configuration.
 - Expandable parents are flattened to child destinations and duplicate hrefs
-  are removed; the admin attendance destination appears once while its report
-  routes remain available.
+  are removed recursively; all 15 ADMIN destinations and all 7 EMPLOYEE
+  destinations from the desktop configuration remain accessible. The admin
+  attendance destination appears once while its report routes remain
+  available.
+- Active highlighting selects the most-specific matching route, so a report
+  route does not highlight both itself and its attendance parent.
 - Dashboard content receives bottom padding, and the bar uses
   `env(safe-area-inset-bottom)` so Android navigation controls do not cover it.
 - Existing top safe-area handling remains in `globals.css`; no arbitrary device
@@ -122,9 +136,11 @@ Application and tests:
 - `src/components/layouts/dashboard-brand.tsx`
 - `src/components/layouts/dashboard-header.tsx`
 - `src/components/layouts/dashboard-shell.tsx`
+- `src/components/layouts/dashboard-sidebar.tsx`
 - removed `src/components/layouts/mobile-navigation.tsx`
-- `src/components/layouts/mobile-bottom-navigation.tsx` (new)
-- `src/components/layouts/mobile-bottom-navigation.test.ts` (new)
+- `src/components/layouts/mobile-bottom-navigation.tsx` (updated)
+- `src/components/layouts/mobile-bottom-navigation.test.ts` (updated)
+- `src/components/layouts/navigation-model.ts` (new shared flattening/active-route model)
 - `src/features/auth/components/auth-shell.tsx`
 - `src/features/auth/components/login-form.tsx`
 - `src/features/auth/components/otp-form.tsx`
@@ -158,7 +174,7 @@ safe-area/status-bar runtime work were preserved.
 | `npm ci` | PASS; clean install completed. npm printed deprecation warnings during install. |
 | `npm run typecheck` | PASS |
 | `npm run lint` | PASS |
-| `npm run test` | PASS — 88 files, 430 tests |
+| `npm run test` | PASS — 88 files, 433 tests |
 | `npm run build` | PASS — Next.js 16.4.6 production build |
 | `npx cap sync android` | PASS — six Capacitor Android plugins synchronized |
 | `npx cap doctor` | PASS — Android looking great; Capacitor 8.6.2 installed |

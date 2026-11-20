@@ -48,12 +48,8 @@ export function createRefreshCoordinator(
       console.log("[Auth] Starting coordinated refresh request");
     }
 
-<<<<<<< HEAD
-    inFlight = refreshRequest(timeoutMs)
-=======
     inFlightRevision = sessionStore.getRevision();
-    inFlight = refreshRequest()
->>>>>>> 199b426 (added logo and header)
+    inFlight = refreshRequest(timeoutMs)
       .then((result) => {
         if (sessionStore.getRevision() !== inFlightRevision) {
           throw new StaleRefreshResponseError();
@@ -83,12 +79,8 @@ export function createRefreshCoordinator(
   };
 }
 
-<<<<<<< HEAD
 async function requestRefresh(timeoutMs?: number) {
-=======
-async function requestRefresh() {
   const requestRevision = sessionStore.getRevision();
->>>>>>> 199b426 (added logo and header)
   try {
     // Load the shared client lazily to avoid a module cycle while the auth
     // interceptor registers its refresh callback.
@@ -96,11 +88,7 @@ async function requestRefresh() {
     const response = await apiClient.post<ApiResponse<AuthenticationResponse>>(
       "/auth/refresh",
       undefined,
-<<<<<<< HEAD
-      timeoutMs ? { timeout: timeoutMs } : undefined,
-=======
-      { timeout: REFRESH_REQUEST_TIMEOUT_MS },
->>>>>>> 199b426 (added logo and header)
+      { timeout: timeoutMs ?? REFRESH_REQUEST_TIMEOUT_MS },
     );
     return response.data.data;
   } catch (error) {

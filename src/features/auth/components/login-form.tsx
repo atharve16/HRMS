@@ -5,21 +5,20 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, LoaderCircle, Mail } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
 import type { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getAuthErrorMessage } from "@/features/auth/lib/auth-error-message";
-<<<<<<< HEAD
 import { AuthLoading } from "@/features/auth/components/auth-loading";
-import { dashboardForRole, getSafeRedirectPath } from "@/features/auth/lib/auth-routes";
-=======
-import { getOtpVerificationPath } from "@/features/auth/lib/auth-routes";
->>>>>>> 199b426 (added logo and header)
+import { getAuthErrorMessage } from "@/features/auth/lib/auth-error-message";
+import {
+  dashboardForRole,
+  getOtpVerificationPath,
+  getSafeRedirectPath,
+} from "@/features/auth/lib/auth-routes";
 import {
   requestOtpSchema,
   type RequestOtpFormValues,
@@ -33,17 +32,9 @@ type ParsedRequestOtpValues = z.output<typeof requestOtpSchema>;
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-<<<<<<< HEAD
   const { restorationError, retryRestoration, status, session } = useAuth();
-=======
-  const { restorationError, retryRestoration } = useAuth();
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
->>>>>>> 199b426 (added logo and header)
-  const form = useForm<
-    RequestOtpFormValues,
-    unknown,
-    ParsedRequestOtpValues
-  >({
+  const form = useForm<RequestOtpFormValues, unknown, ParsedRequestOtpValues>({
     resolver: zodResolver(requestOtpSchema),
     defaultValues: { email: "" },
   });
@@ -51,10 +42,9 @@ export function LoginForm() {
   const mutation = useMutation({
     mutationFn: requestOtp,
     onSuccess: (_response, variables) => {
-      const params = new URLSearchParams({ email: variables.email });
-      const redirect = searchParams.get("redirect");
-      if (redirect) params.set("redirect", redirect);
-      router.push(`/verify-otp?${params.toString()}`);
+      router.push(
+        getOtpVerificationPath(variables.email, searchParams.get("redirect")),
+      );
     },
   });
 
@@ -76,6 +66,13 @@ export function LoginForm() {
       !["INVALID_REFRESH_TOKEN", "REFRESH_TOKEN_REUSED"].includes(
         restorationError.code ?? "",
       ));
+
+  const canContinueToOtp =
+    submittedEmail &&
+    (!isApiClientError(mutation.error) ||
+      mutation.error.isTimeout ||
+      !mutation.error.status ||
+      mutation.error.status >= 500);
 
   return (
     <div>
@@ -145,33 +142,13 @@ export function LoginForm() {
         {mutation.isError ? (
           <div className="space-y-3 rounded-lg border border-destructive/20 bg-destructive-soft p-3 text-sm text-destructive" role="alert">
             <p>{getAuthErrorMessage(mutation.error)}</p>
-<<<<<<< HEAD
-            {mutation.variables &&
-            (!isApiClientError(mutation.error) ||
-              mutation.error.isTimeout ||
-              !mutation.error.status ||
-              mutation.error.status >= 500) ? (
-              <button
-                className="font-semibold underline underline-offset-4"
-                onClick={() => {
-                  const params = new URLSearchParams({ email: mutation.variables.email });
-                  const redirect = searchParams.get("redirect");
-                  if (redirect) params.set("redirect", redirect);
-                  router.push(`/verify-otp?${params.toString()}`);
-                }}
-                type="button"
-              >
-                I received a code — enter it
-              </button>
-=======
-            {submittedEmail ? (
+            {canContinueToOtp ? (
               <Link
                 className="inline-flex font-semibold underline-offset-4 hover:underline"
                 href={getOtpVerificationPath(submittedEmail, searchParams.get("redirect"))}
               >
                 I already received the code
               </Link>
->>>>>>> 199b426 (added logo and header)
             ) : null}
           </div>
         ) : null}

@@ -86,17 +86,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
     }
 
-<<<<<<< HEAD
-    // Bound cold-start restoration so the login screen appears within 15 seconds.
-    // A timeout is transient and does not clear the HTTP-only refresh cookie.
-    refreshSession(15_000)
-=======
     restoreSessionWithDeadline(
       refreshSession,
       SESSION_RESTORATION_TIMEOUT_MS,
       () => sessionStore.invalidatePendingRefreshes(),
     )
->>>>>>> 199b426 (added logo and header)
       .then((res) => {
         if (active) {
           if (process.env.NODE_ENV !== "production") {

@@ -26,13 +26,7 @@ export function DashboardShell({ children, navigation, identity }: DashboardShel
       />
       <div className="min-w-0 flex-1">
         <DashboardHeader identity={identity} navigation={navigation} />
-<<<<<<< HEAD
-        <main className="pb-[calc(4.25rem+env(safe-area-inset-bottom))] lg:pb-0">
-          {children}
-        </main>
-=======
         <main className="dashboard-main">{children}</main>
->>>>>>> 199b426 (added logo and header)
       </div>
       <MobileBottomNavigation navigation={navigation} />
     </div>
