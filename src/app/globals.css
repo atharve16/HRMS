@@ -122,6 +122,23 @@
     }
   }
 
+  /*
+   * APK-only override: Capacitor WebViews can report a desktop-sized CSS
+   * viewport even on a phone. Force the native Android shell to use bottom
+   * navigation regardless of the Tailwind lg breakpoint.
+   */
+  html.capacitor-android .dashboard-sidebar {
+    display: none !important;
+  }
+
+  html.capacitor-android .dashboard-mobile-navigation {
+    display: block !important;
+  }
+
+  html.capacitor-android .dashboard-main {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important;
+  }
+
   button,
   a {
     -webkit-tap-highlight-color: transparent;
