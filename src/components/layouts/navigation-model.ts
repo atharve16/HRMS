@@ -2,6 +2,8 @@ import type { NavigationItem, NavigationSection } from "@/types/navigation";
 
 export const DESKTOP_SIDEBAR_VISIBILITY_CLASS = "hidden lg:flex";
 export const MOBILE_NAVIGATION_VISIBILITY_CLASS = "lg:hidden";
+export const DESKTOP_SIDEBAR_MARKER_CLASS = "dashboard-sidebar";
+export const MOBILE_NAVIGATION_MARKER_CLASS = "dashboard-mobile-navigation";
 export const MOBILE_BOTTOM_NAVIGATION_SAFE_AREA_CLASS = "mobile-bottom-navigation";
 
 function flattenItem(item: NavigationItem): NavigationItem[] {
