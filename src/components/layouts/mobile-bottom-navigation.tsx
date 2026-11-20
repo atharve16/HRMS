@@ -8,6 +8,7 @@ import type { NavigationSection } from "@/types/navigation";
 
 import {
   MOBILE_BOTTOM_NAVIGATION_SAFE_AREA_CLASS,
+  MOBILE_NAVIGATION_MARKER_CLASS,
   MOBILE_NAVIGATION_VISIBILITY_CLASS,
   flattenNavigationItems,
   getActiveNavigationHref,
@@ -22,6 +23,7 @@ export function MobileBottomNavigation({ navigation }: { navigation: NavigationS
     <nav
       aria-label="Mobile navigation"
       className={cn(
+        MOBILE_NAVIGATION_MARKER_CLASS,
         MOBILE_BOTTOM_NAVIGATION_SAFE_AREA_CLASS,
         "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 shadow-overlay backdrop-blur",
         MOBILE_NAVIGATION_VISIBILITY_CLASS,
