@@ -3,8 +3,10 @@ import { LayoutDashboard, List } from "lucide-react";
 
 import { adminNavigation, employeeNavigation } from "@/constants/navigation";
 import {
+  DESKTOP_SIDEBAR_MARKER_CLASS,
   DESKTOP_SIDEBAR_VISIBILITY_CLASS,
   MOBILE_BOTTOM_NAVIGATION_SAFE_AREA_CLASS,
+  MOBILE_NAVIGATION_MARKER_CLASS,
   MOBILE_NAVIGATION_VISIBILITY_CLASS,
   flattenNavigationItems,
   getActiveNavigationHref,
@@ -89,9 +91,11 @@ describe("mobile bottom navigation", () => {
     );
   });
 
-  it("uses mobile-only visibility, desktop sidebar visibility, and safe-area styling", () => {
-    expect(MOBILE_NAVIGATION_VISIBILITY_CLASS).toContain("lg:hidden");
+  it("provides explicit APK selectors independent of viewport breakpoints", () => {
+    expect(DESKTOP_SIDEBAR_MARKER_CLASS).toBe("dashboard-sidebar");
+    expect(MOBILE_NAVIGATION_MARKER_CLASS).toBe("dashboard-mobile-navigation");
     expect(DESKTOP_SIDEBAR_VISIBILITY_CLASS).toBe("hidden lg:flex");
+    expect(MOBILE_NAVIGATION_VISIBILITY_CLASS).toBe("lg:hidden");
     expect(MOBILE_BOTTOM_NAVIGATION_SAFE_AREA_CLASS).toBe("mobile-bottom-navigation");
   });
 });
