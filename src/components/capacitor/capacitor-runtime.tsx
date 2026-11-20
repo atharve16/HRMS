@@ -19,11 +19,18 @@ function isExternalHttpUrl(href: string) {
 }
 
 /**
- * Small native-only bridge for Stage 1. The web app remains the source of
- * truth for navigation, while Android handles system back and external URLs.
+ * Small native-only bridge. The Android app receives an explicit platform
+ * marker so its navigation layout does not depend on WebView viewport width.
  */
 export function CapacitorRuntime() {
   useEffect(() => {
+    const isAndroidApp =
+      Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
+
+    if (isAndroidApp) {
+      document.documentElement.classList.add("capacitor-android");
+    }
+
     if (!Capacitor.isNativePlatform()) return;
 
     let disposed = false;
@@ -31,11 +38,8 @@ export function CapacitorRuntime() {
 
     const configureSystemBars = async () => {
       try {
-        // DEFAULT follows the Android light/dark appearance for icon contrast.
         await SystemBars.setStyle({ style: SystemBarsStyle.Default });
         await StatusBar.setStyle({ style: Style.Default });
-        // This is honored on Android 14 and older. Android 15/16 use the CSS
-        // safe-area insets because edge-to-edge is enforced by the platform.
         await StatusBar.setOverlaysWebView({ overlay: false });
       } catch (error) {
         if (process.env.NODE_ENV !== "production") {
@@ -82,6 +86,7 @@ export function CapacitorRuntime() {
       disposed = true;
       removeBackButtonListener?.();
       document.removeEventListener("click", handleExternalLink, true);
+      document.documentElement.classList.remove("capacitor-android");
     };
   }, []);
 
